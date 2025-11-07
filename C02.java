@@ -21,7 +21,7 @@ class Transaction implements Serializable {
         return String.format("[%s] %-15s £%.2f", sdf.format(timestamp), type, reading);
     }
 }
-public class co2 {
+public class C02 {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("CO2 reading tracker");
