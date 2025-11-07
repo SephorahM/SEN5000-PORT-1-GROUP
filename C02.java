@@ -48,6 +48,8 @@ public class C02 {
         UserIDfield.setPreferredSize(new Dimension(200, 25));
         JTextField postcodeField = new JTextField();
         postcodeField.setPreferredSize(new Dimension(200, 25));
+        JTextField co2ReadingField = new JTextField();
+        co2ReadingField.setPreferredSize(new Dimension(200, 25));
         JButton loginButton = new JButton("Login");
         JLabel copyrightLabel = new JLabel("© 2025 CO2 tracker, Cardiff, UK", JLabel.CENTER);
         copyrightLabel.setFont(new Font("Arial", Font.ITALIC, 14));
@@ -74,10 +76,18 @@ public class C02 {
 
         gbc.gridx = 0;
         gbc.gridy = 3;
+        gbc.gridwidth = 1;
+        panel.add(new JLabel("CO2 READING (PPM):"), gbc);
+
+        gbc.gridx = 1;
+        panel.add(co2ReadingField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 4;
         gbc.gridwidth = 2;
         panel.add(loginButton, gbc);
 
-        gbc.gridy = 4;
+        gbc.gridy = 5;
         panel.add(copyrightLabel, gbc);
 
         frame.setContentPane(panel);
