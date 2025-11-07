@@ -85,5 +85,6 @@ public class C02 {
         frame.pack();
         frame.revalidate();
         frame.repaint();
+ 
     }
 }
