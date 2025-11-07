@@ -48,12 +48,34 @@ public class C02 {
         UserIDfield.setPreferredSize(new Dimension(200, 25));
         JTextField postcodeField = new JTextField();
         postcodeField.setPreferredSize(new Dimension(200, 25));
-        JTextField co2ReadingField = new JTextField();
-        co2ReadingField.setPreferredSize(new Dimension(200, 25));
-        JButton loginButton = new JButton("Login");
+    JButton loginButton = new JButton("Login");
+    JButton createAccountButton = new JButton("Create Account");
+    createAccountButton.setPreferredSize(new Dimension(200, 25));
+    JLabel errorLabel = new JLabel("");
+        errorLabel.setForeground(Color.RED);
+        errorLabel.setHorizontalAlignment(JLabel.CENTER);
         JLabel copyrightLabel = new JLabel("© 2025 CO2 tracker, Cardiff, UK", JLabel.CENTER);
         copyrightLabel.setFont(new Font("Arial", Font.ITALIC, 14));
         copyrightLabel.setForeground(Color.MAGENTA); // Set color to black
+
+        // Add postcode length validation for login
+        loginButton.addActionListener(e -> {
+            String postcode = postcodeField.getText().trim();
+            int length = postcode.length();
+            if (length < 5 || length > 9) {
+                errorLabel.setText("Postcode must be between 5 and 9 characters!");
+                return;
+            }
+            errorLabel.setText("");
+            // Continue with login process (placeholder)
+            JOptionPane.showMessageDialog(frame, "Login clicked", "Login", JOptionPane.INFORMATION_MESSAGE);
+        });
+
+        // Simple action for Create Account button
+        createAccountButton.addActionListener(e -> {
+            // Placeholder action: show a dialog — replace with account creation flow as needed
+            JOptionPane.showMessageDialog(frame, "Create account clicked", "Create Account", JOptionPane.INFORMATION_MESSAGE);
+        });
 
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -74,21 +96,21 @@ public class C02 {
         gbc.gridx = 1;
         panel.add(postcodeField, gbc);
 
+        // Place buttons stacked vertically and centered
         gbc.gridx = 0;
         gbc.gridy = 3;
-        gbc.gridwidth = 1;
-        panel.add(new JLabel("CO2 READING (PPM):"), gbc);
+    gbc.gridwidth = 2; // span both columns so component is centered
+    gbc.anchor = GridBagConstraints.CENTER;
+    panel.add(loginButton, gbc);
 
-        gbc.gridx = 1;
-        panel.add(co2ReadingField, gbc);
+    gbc.gridy = 5;
+    panel.add(createAccountButton, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        gbc.gridwidth = 2;
-        panel.add(loginButton, gbc);
+    gbc.gridy = 6;
+    panel.add(errorLabel, gbc);
 
-        gbc.gridy = 5;
-        panel.add(copyrightLabel, gbc);
+    gbc.gridy = 7;
+    panel.add(copyrightLabel, gbc);
 
         frame.setContentPane(panel);
         frame.setPreferredSize(new Dimension(400, 300));
