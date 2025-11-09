@@ -153,14 +153,16 @@ public class C02 {
         clientButton.setFont(new Font("Arial", Font.BOLD, 16));
         serverButton.setFont(new Font("Arial", Font.BOLD, 16));
 
-        // Add action listeners
-        clientButton.addActionListener(e -> showLoginPage(frame));
+        // Update server button action listener to show "coming soon" message
         serverButton.addActionListener(e -> {
             JOptionPane.showMessageDialog(frame, 
-                "Server functionality coming soon!", 
+                "Server functionality will be implemented in future version.", 
                 "Server Access", 
                 JOptionPane.INFORMATION_MESSAGE);
         });
+
+        // Keep client button action listener to show login page
+        clientButton.addActionListener(e -> showLoginPage(frame));
 
         // Layout components
         gbc.gridx = 0;
@@ -637,11 +639,6 @@ public class C02 {
                 return;
             }
 
-            if (!postcode.matches("\\d{1,9}")) {
-                errorLabel.setText("Postcode must be between 1 and 9 digits!");
-                return;
-            }
-            
             try {
                 double co2Value = Double.parseDouble(co2Reading);
                 if (co2Value <= 0) {
@@ -649,16 +646,15 @@ public class C02 {
                     return;
                 }
 
-                // Update timestamp format to include time
                 String timestamp = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(new Date());
                 
+                // Write directly to CSV file
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(CSV_FILE, true))) {
                     String csvLine = String.format("%s,%s,%s,%s,%.2f%n",
                         timestamp, submittedUserId, userName, postcode, co2Value);
                     writer.write(csvLine);
                     writer.flush();
                     
-                    // Update success message to show full timestamp
                     JOptionPane.showMessageDialog(co2Frame, 
                         String.format("Reading submitted successfully!\nTimestamp: %s\nCO2 Level: %.2f ppm", 
                             timestamp, co2Value),
@@ -666,12 +662,7 @@ public class C02 {
                         JOptionPane.INFORMATION_MESSAGE);
                     co2Frame.dispose();
                 } catch (IOException ex) {
-                    ex.printStackTrace();
                     errorLabel.setText("Error saving reading: " + ex.getMessage());
-                    JOptionPane.showMessageDialog(co2Frame,
-                        "Error saving to CSV: " + ex.getMessage(),
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
                 }
             } catch (NumberFormatException ex) {
                 errorLabel.setText("Invalid CO2 reading format!");
