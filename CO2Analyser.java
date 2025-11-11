@@ -179,6 +179,7 @@ public class CO2Analyser {
                 rows.add(new String[]{
                     parts[0], // Timestamp
                     parts[1], // User ID
+                    parts[2], // Name
                     parts[3], // Postcode
                     parts[4]  // CO2
                 });
