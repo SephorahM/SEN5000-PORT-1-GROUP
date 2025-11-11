@@ -662,7 +662,8 @@ public class CO2 {
                         JOptionPane.INFORMATION_MESSAGE);
                     postcodeField.setText("");
                     co2Field.setText("");
-                    
+                    postcodeField.requestFocus();
+
                 } catch (IOException ex) {
                     errorLabel.setText("Error saving reading: " + ex.getMessage());
                 }
