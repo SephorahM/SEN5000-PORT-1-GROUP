@@ -660,7 +660,9 @@ public class CO2 {
                             timestamp, co2Value),
                         "Success", 
                         JOptionPane.INFORMATION_MESSAGE);
-                    co2Frame.dispose();
+                    postcodeField.setText("");
+                    co2Field.setText("");
+                    
                 } catch (IOException ex) {
                     errorLabel.setText("Error saving reading: " + ex.getMessage());
                 }
