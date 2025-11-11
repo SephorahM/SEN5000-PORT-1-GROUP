@@ -38,7 +38,7 @@ class User implements Serializable {
     public String getPassword() { return password; }
 }
 
-public class C02 {
+public class CO2 {
     private static Set<String> existingUserIds = new HashSet<>();
     private static Map<String, User> users = new HashMap<>();
     private static final String CSV_FILE = "co2_readings.csv";
