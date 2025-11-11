@@ -669,6 +669,20 @@ public class CO2 {
             }
         });
 
+        gbc.gridy = 6;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+        gbc.insets = new Insets(20, 15, 20, 15);
+
+        JButton viewAnalysisButton = new JButton("View CO2 Analysis");
+        viewAnalysisButton.setPreferredSize(new Dimension(200, 35));
+        viewAnalysisButton.setFont(new Font("Arial", Font.BOLD, 14));
+        panel.add(viewAnalysisButton, gbc);
+
+        viewAnalysisButton.addActionListener(e -> {
+            CO2Analyser.showAnalysisPage(co2Frame);
+        });
+
         co2Frame.setContentPane(panel);
         co2Frame.setLocationRelativeTo(parentFrame);
         co2Frame.pack();
