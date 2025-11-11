@@ -694,7 +694,7 @@ public class CO2 {
         JButton logoutButton = new JButton("Logout");
         logoutButton.setPreferredSize(new Dimension(200, 35));
         logoutButton.setFont(new Font("Arial", Font.BOLD, 14));
-        logoutButton.setBackground(new Color(220, 100, 100));
+        logoutButton.setBackground(new Color(255, 0, 0));
         logoutButton.setForeground(Color.WHITE);
         panel.add(logoutButton, gbc);
 

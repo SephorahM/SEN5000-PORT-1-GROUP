@@ -9,6 +9,74 @@ public class CO2Analyser {
     private static final String CSV_FILE = "co2_readings.csv";
 
     public static void showAnalysisPage(JFrame parentFrame) {
+    JFrame analysisFrame = new JFrame("CO2 Data Analysis");
+    analysisFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    analysisFrame.setSize(700, 450);
+    analysisFrame.setLocationRelativeTo(parentFrame);
+
+    JPanel panel = new JPanel(new BorderLayout(10, 10));
+    panel.setBackground(new Color(240, 240, 240));
+
+    JPanel topPanel = new JPanel(new BorderLayout());
+    topPanel.setBackground(new Color(240, 240, 240));
+
+    JLabel titleLabel = new JLabel("CO2 Readings Table", JLabel.CENTER);
+    titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
+    titleLabel.setForeground(new Color(0, 102, 204));
+    topPanel.add(titleLabel, BorderLayout.CENTER);
+
+    JButton sortButton = new JButton("Sort by Postcode");
+    sortButton.setFont(new Font("Arial", Font.PLAIN, 14));
+    sortButton.setBackground(new Color(200, 220, 240));
+    sortButton.setFocusPainted(false);
+    topPanel.add(sortButton, BorderLayout.EAST);
+
+    panel.add(topPanel, BorderLayout.NORTH);
+
+    DefaultTableModel model = new DefaultTableModel(
+        new String[]{"Timestamp", "User ID", "Name", "Postcode", "CO2 (ppm)"}, 0
+    );
+    JTable table = new JTable(model);
+    JScrollPane scrollPane = new JScrollPane(table);
+    panel.add(scrollPane, BorderLayout.CENTER);
+
+    // --- Load all readings directly (raw data) ---
+    List<String[]> allReadings = loadAllReadings();
+    if (allReadings.isEmpty()) {
+        model.addRow(new Object[]{"No data available", "", "", "", ""});
+    } else {
+        for (String[] row : allReadings) {
+            model.addRow(row);
+        }
+    }
+
+    // --- Sort by Postcode when button clicked ---
+    sortButton.addActionListener(e -> {
+        List<String[]> sorted = new ArrayList<>();
+        for (int i = 0; i < model.getRowCount(); i++) {
+            if (model.getValueAt(i, 0).toString().equals("No data available")) continue;
+            sorted.add(new String[]{
+                model.getValueAt(i, 0).toString(),
+                model.getValueAt(i, 1).toString(),
+                model.getValueAt(i, 2).toString(),
+                model.getValueAt(i, 3).toString(),
+                model.getValueAt(i, 4).toString()
+            });
+        }
+
+        // Sort alphabetically by postcode (column index 3)
+        sorted.sort(Comparator.comparing(row -> row[3]));
+
+        // Clear and repopulate table
+        model.setRowCount(0);
+        for (String[] row : sorted) model.addRow(row);
+    });
+
+    analysisFrame.setContentPane(panel);
+    analysisFrame.setVisible(true);
+}
+
+    /*public static void showAnalysisPage(JFrame parentFrame) {
         JFrame analysisFrame = new JFrame("CO2 Data Analysis");
         analysisFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         analysisFrame.setSize(500,400);
@@ -72,7 +140,7 @@ public class CO2Analyser {
 
         analysisFrame.setContentPane(panel);
         analysisFrame.setVisible(true);
-    }
+    }*/
 
     private static Map<String, List<Double>> loadReadings() {
         Map<String, List<Double>> data = new HashMap<>();
@@ -93,4 +161,35 @@ public class CO2Analyser {
         }
         return data;
     }
+
+    private static List<String[]> loadAllReadings() {
+    List<String[]> rows = new ArrayList<>();
+    File file = new File(CSV_FILE);
+
+    if (!file.exists() || file.length() == 0) {
+        return rows;
+    }
+
+    try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+        String line;
+        reader.readLine(); // Skip header
+        while ((line = reader.readLine()) != null) {
+            String[] parts = line.split(",");
+            if (parts.length >= 5) {
+                rows.add(new String[]{
+                    parts[0], // Timestamp
+                    parts[1], // User ID
+                    parts[3], // Postcode
+                    parts[4]  // CO2
+                });
+            }
+        }
+    } catch (IOException e) {
+        JOptionPane.showMessageDialog(null, "Error reading data: " + e.getMessage(),
+                "File Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+    return rows;
+}
+
 }
