@@ -11,16 +11,27 @@ public class CO2Analyser {
     public static void showAnalysisPage(JFrame parentFrame) {
         JFrame analysisFrame = new JFrame("CO2 Data Analysis");
         analysisFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        analysisFrame.setSize(700,500);
+        analysisFrame.setSize(500,400);
         analysisFrame.setLocationRelativeTo(parentFrame);
 
         JPanel panel = new JPanel(new BorderLayout(10,10));
         panel.setBackground(new Color(240, 240, 240));
 
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(new Color(240, 240, 240));
+
         JLabel titleLabel = new JLabel("CO2 Analysis Board", JLabel.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
         titleLabel.setForeground(new Color(0, 102, 204));
-        panel.add(titleLabel, BorderLayout.NORTH);
+        topPanel.add(titleLabel, BorderLayout.CENTER);
+
+        JButton sortButton = new JButton("Sort by Postcode");
+        sortButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        sortButton.setBackground(new Color(200, 220, 240));
+        sortButton.setFocusPainted(false);
+        topPanel.add(sortButton, BorderLayout.EAST);
+
+        panel.add(topPanel, BorderLayout.NORTH);
 
         DefaultTableModel model = new DefaultTableModel(
             new String[]{"Postcode", "Number of Readings", "Average CO2 (ppm)"}, 0);
@@ -49,13 +60,12 @@ public class CO2Analyser {
 
             double overallAvg = totalSum / totalCount;
 
-            // Bottom label
             JLabel overallLabel = new JLabel("Overall Average CO₂: " + String.format("%.2f ppm", overallAvg), JLabel.CENTER);
             overallLabel.setFont(new Font("Arial", Font.BOLD, 16));
             overallLabel.setForeground(Color.DARK_GRAY);
             panel.add(overallLabel, BorderLayout.SOUTH);
         }
-        // Table view
+
         JTable table = new JTable(model);
         JScrollPane scrollPane = new JScrollPane(table);
         panel.add(scrollPane, BorderLayout.CENTER);
