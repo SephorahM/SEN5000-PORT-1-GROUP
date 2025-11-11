@@ -5,7 +5,7 @@ import java.io.*;
 import java.util.*;
 import java.util.List;
 
-public class C02Analyser {
+public class CO2Analyser {
     private static final String CSV_FILE = "co2_readings.csv";
 
     public static void showAnalysisPage(JFrame parentFrame) {
@@ -27,32 +27,38 @@ public class C02Analyser {
             
             Map<String, List<Double>> readingsByPostcode = loadReadings();
             if (readingsByPostcode.isEmpty()) {
-                JOptionPane.showMessageDialog(analysisFrame, "No readings available to analyse.", "Data Missing", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-
+                model.addRow(new Object[]{"No data", 0, "N/A"});
+            }else{
+            
             double totalSum = 0;
             int totalCount = 0;
-            for (String postcode : readingsByPostcode.keySet()) {
-            List<Double> list = readingsByPostcode.get(postcode);
-            double avg = list.stream().mapToDouble(Double::doubleValue).average().orElse(0);
-            model.addRow(new Object[]{postcode, list.size(), String.format("%.2f", avg)});
-            totalSum += list.stream().mapToDouble(Double::doubleValue).sum();
-            totalCount += list.size();
+
+            for (Map.Entry<String, List<Double>> entry : readingsByPostcode.entrySet()) {
+                String postcode = entry.getKey();
+                List<Double> values = entry.getValue();
+                double avg = values.stream().mapToDouble(Double::doubleValue).average().orElse(0);
+                model.addRow(new Object[]{
+                    postcode,
+                    values.size(),
+                    String.format("%.2f", avg)
+                });
+
+                totalSum += values.stream().mapToDouble(Double::doubleValue).sum();
+                totalCount += values.size();
+            }
+
+            double overallAvg = totalSum / totalCount;
+
+            // Bottom label
+            JLabel overallLabel = new JLabel("Overall Average CO₂: " + String.format("%.2f ppm", overallAvg), JLabel.CENTER);
+            overallLabel.setFont(new Font("Arial", Font.BOLD, 16));
+            overallLabel.setForeground(Color.DARK_GRAY);
+            panel.add(overallLabel, BorderLayout.SOUTH);
         }
-
-        double overallAvg = totalSum / totalCount;
-
         // Table view
         JTable table = new JTable(model);
         JScrollPane scrollPane = new JScrollPane(table);
         panel.add(scrollPane, BorderLayout.CENTER);
-
-        // Bottom label
-        JLabel overallLabel = new JLabel("Overall Average CO₂: " + String.format("%.2f ppm", overallAvg), JLabel.CENTER);
-        overallLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        overallLabel.setForeground(Color.DARK_GRAY);
-        panel.add(overallLabel, BorderLayout.SOUTH);
 
         analysisFrame.setContentPane(panel);
         analysisFrame.setVisible(true);
@@ -62,7 +68,7 @@ public class C02Analyser {
         Map<String, List<Double>> data = new HashMap<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(CSV_FILE))) {
             String line;
-            reader.readLine(); // skip header
+            reader.readLine();
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
                 if (parts.length >= 5) {
