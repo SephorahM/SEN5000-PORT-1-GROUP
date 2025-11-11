@@ -686,6 +686,32 @@ public class CO2 {
             CO2Analyser.showAnalysisPage(co2Frame);
         });
 
+        gbc.gridy = 7;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+        gbc.insets = new Insets(10, 15, 20, 15);
+
+        JButton logoutButton = new JButton("Logout");
+        logoutButton.setPreferredSize(new Dimension(200, 35));
+        logoutButton.setFont(new Font("Arial", Font.BOLD, 14));
+        logoutButton.setBackground(new Color(220, 100, 100));
+        logoutButton.setForeground(Color.WHITE);
+        panel.add(logoutButton, gbc);
+
+        logoutButton.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                co2Frame,
+                "Are you sure you want to log out?",
+                "Logout Confirmed",
+                JOptionPane.YES_NO_OPTION
+            );
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                co2Frame.dispose();
+                showLoginPage(parentFrame);
+            }
+        });
+
         co2Frame.setContentPane(panel);
         co2Frame.setLocationRelativeTo(parentFrame);
         co2Frame.pack();
