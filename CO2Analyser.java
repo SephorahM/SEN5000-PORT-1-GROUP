@@ -100,7 +100,7 @@ public class CO2Analyser {
         topPanel.add(sortButton, BorderLayout.EAST);
 
         panel.add(topPanel, BorderLayout.NORTH);
-
+        
         DefaultTableModel model = new DefaultTableModel(
             new String[]{"Postcode", "Number of Readings", "Average CO2 (ppm)"}, 0);
             
