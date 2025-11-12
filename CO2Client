@@ -86,7 +86,7 @@ public class CO2Client {
         frame.setContentPane(panel);
         frame.pack();
 
-        // ✅ LOGIN BUTTON ACTION
+        
         loginButton.addActionListener(e -> {
             String postcode = postcodeField.getText().trim();
             String userID = userIDField.getText().trim();
