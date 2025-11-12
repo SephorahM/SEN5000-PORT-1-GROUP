@@ -60,6 +60,7 @@ class Transaction implements Serializable {
         this.reading = reading;
     }
 
+    
     public String getFormattedTransaction() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return String.format("[%s] %-15s %.2f ppm", sdf.format(timestamp), type, reading);
