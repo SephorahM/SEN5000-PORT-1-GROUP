@@ -3,6 +3,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.*;
 import java.net.*;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class CO2Server extends JFrame implements Runnable {
 
@@ -28,7 +30,7 @@ public class CO2Server extends JFrame implements Runnable {
         startButton = new JButton("Start server");
         stopButton = new JButton("Stop server");
         refreshButton = new JButton("Refresh Data");
-        stopButton.setEnable(false);
+        stopButton.setEnabled(false);
 
         topPanel.add(startButton);
         topPanel.add(stopButton);
@@ -38,38 +40,58 @@ public class CO2Server extends JFrame implements Runnable {
         logArea = new JTextArea();
         logArea.setEditable(false);
         JScrollPane logScroll = new JScrollPane(logArea);
-        logScroll.setBorder(BorderFactory.createTitleBorder("Server Log"));
-        add(logScroll, BorderLayout.Center);
+        logScroll.setBorder(BorderFactory.createTitledBorder("Server Log"));
+        add(logScroll, BorderLayout.CENTER);
 
         tableModel = new DefaultTableModel(
             new String[]{"Timestamp", "UserID", "Name", "Postcode", "CO2 (ppm)"}, 0);
         dataTable = new JTable(tableModel);
         JScrollPane tableScroll = new JScrollPane(dataTable);
+        tableScroll.setBorder(BorderFactory.createTitledBorder("CO2 readings"));
         add(tableScroll, BorderLayout.SOUTH);
 
         startButton.addActionListener(e -> startServer());
         stopButton.addActionListener(e -> stopServer());
         refreshButton.addActionListener(e -> loadCSVData());
 
+        initialiseCSV();
         loadCSVData();
+        
+    }
 
+    public void startServer() {
+        running = false;
+        try {
+            if (serverSocket != null && !serverSocket.isClosed()) {
+                serverSocket.close();
+            }
+        } catch (IOException e) {
+            log("Error stopping server: " + e.getMessage());
+        }
+
+        startButton.setEnabled(true);
+        stopButton.setEnabled(false);
+        log("Server stopped");
     }
 
     public void run() {
-        initialiseCSV{};
+        initializeCSV();
 
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-            System.out.println("CO2 Server started on port " + PORT);
-            System.out.println("Waiting for client connections...");
+            this.serverSocket = server;
+            log("Waiting for client connections...");
 
-            while (true) {
-                Socket clientSocket = serverSocket.accept();
-                System.out.println("Client connected: " + clientSocket.getIntAddress());
-
-                new Thread(() -> handleClient(clientSocket)).start();
-            }
+            while (running) {
+                try {
+                    Socket clientSocket = serverSocket.accept();
+                    log("Client connected: " + clientSocket.getInetAddress());
+                    new Thread(() -> handleClient(clientSocket)).start();
+                } catch (SocketException se) {
+                    break;
+                }
+            
         } catch (IOException e) {
-            System.err.println("Server Error: " + e.getMessage());
+            log("Server Error: " + e.getMessage());
         }
     }
 
