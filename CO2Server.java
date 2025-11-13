@@ -77,7 +77,7 @@ public class CO2Server extends JFrame implements Runnable {
     public void run() {
         initialiseCSV();
 
-        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+        try (ServerSocket server = new ServerSocket(PORT)) {
             this.serverSocket = server;
             log("Waiting for client connections...");
 
@@ -89,13 +89,49 @@ public class CO2Server extends JFrame implements Runnable {
                 } catch (SocketException se) {
                     break;
                 }
-            
+            }
         } catch (IOException e) {
             log("Server Error: " + e.getMessage());
         }
     }
 
-    private void handleClient
+    private void stopServer() {
+        running = false;
+        try {
+            if (serverSocket != null && !serverSocket.isClosed()) {
+                serverSocket.close();
+            }
+        } catch (IOException e) {
+            log("Error stopping server: " + e.getMessage());
+        }
+
+        startButton.setEnabled(true);
+        stopButton.setEnabled(false);
+        log("Server stopped.");
+    }
+
+    private void handleClient(Socket clientSocket) {
+        try (
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)
+        ) {
+            String message = in.readLine();
+            if (message != null) {
+                log("Received: " + message);
+                saveReading(message);
+                out.println("Server received: " + message);
+                SwingUtilities.invokeLater(this::loadCSVData);
+            }
+        } catch (IOException e) {
+            log("Client Error: " + e.getMessage());
+        } finally {
+            try {
+                clientSocket.close();
+            } catch (IOException e) {
+                log("Error closing client socket: " + e.getMessage());
+            }
+        }
+    }
 
     private void saveReading(String data) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(SERVER_CSV, true))) {
