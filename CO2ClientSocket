@@ -2,7 +2,7 @@ import java.io.*;
 import java.net.*;
 import java.util.Scanner;
 
-public class CO2ClientSocket {
+public class CO2Client {
 
     private static final String SERVER_IP = "localhost";
     private static final int PORT = 43;
@@ -28,9 +28,10 @@ public class CO2ClientSocket {
                     break;
                 }
 
+                // Send data to server
                 out.println(userInput);
 
-                
+                // Read server response
                 String response = in.readLine();
                 System.out.println(response);
             }
