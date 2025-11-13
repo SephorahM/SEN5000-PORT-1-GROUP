@@ -1,0 +1,42 @@
+import java.io.*;
+import java.net.*;
+import java.util.Scanner;
+
+public class CO2ClientSocket {
+
+    private static final String SERVER_IP = "localhost";
+    private static final int PORT = 43;
+
+    public static void main(String[] args) {
+        System.out.println("Connecting to CO2 Server...");
+
+        try (
+            Socket socket = new Socket(SERVER_IP, PORT);
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            Scanner scanner = new Scanner(System.in);
+        ) {
+            System.out.println("Connected to server!");
+            String userInput;
+
+            while (true) {
+                System.out.print("Enter CO2 data (or type 'exit' to quit): ");
+                userInput = scanner.nextLine();
+
+                if (userInput.equalsIgnoreCase("exit")) {
+                    System.out.println("Disconnecting...");
+                    break;
+                }
+
+                out.println(userInput);
+
+                
+                String response = in.readLine();
+                System.out.println(response);
+            }
+
+        } catch (IOException e) {
+            System.out.println("Client error: " + e.getMessage());
+        }
+    }
+}
