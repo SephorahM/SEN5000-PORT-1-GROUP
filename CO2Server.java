@@ -1,11 +1,59 @@
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.io.*;
 import java.net.*;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
-public class CO2Server {
+public class CO2Server extends JFrame implements Runnable {
+
+    private JTextArea logArea;
+    private JButton startButton, stopButton, refreshButton;
+    private JTable dataTable;
+    private DefaultTableModel tableModel;
+
+    private ServerSocket serverSocket;
+    private Thread serverThread;
+    private boolean running = false;
     private static final int PORT = 43;
     private static final String SERVER_CSV = "server_readings.csv";
+
+    public CO2Server() {
+
+        setTitle("CO2 Server Dashboard");
+        setSize(500, 400);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLayout(new BorderLayout(10, 10));
+
+        JPanel topPanel = new JPanel();
+        startButton = new JButton("Start server");
+        stopButton = new JButton("Stop server");
+        refreshButton = new JButton("Refresh Data");
+        stopButton.setEnable(false);
+
+        topPanel.add(startButton);
+        topPanel.add(stopButton);
+        topPanel.add(refreshButton);
+        add(topPanel, BorderLayout.NORTH);
+
+        logArea = new JTextArea();
+        logArea.setEditable(false);
+        JScrollPane logScroll = new JScrollPane(logArea);
+        logScroll.setBorder(BorderFactory.createTitleBorder("Server Log"));
+        add(logScroll, BorderLayout.Center);
+
+        tableModel = new DefaultTableModel(
+            new String[]{"Timestamp", "UserID", "Name", "Postcode", "CO2 (ppm)"}, 0);
+        dataTable = new JTable(tableModel);
+        JScrollPane tableScroll = new JScrollPane(dataTable);
+        add(tableScroll, BorderLayout.SOUTH);
+
+        startButton.addActionListener(e -> startServer());
+        stopButton.addActionListener(e -> stopServer());
+        refreshButton.addActionListener(e -> loadCSVData());
+
+        loadCSVData();
+
+    }
 
     public void run() {
         initialiseCSV{};
