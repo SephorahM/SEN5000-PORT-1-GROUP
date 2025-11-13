@@ -1,68 +1,63 @@
 import java.io.*;
 import java.net.*;
-import java.text.SimpleDateFormat;
-import java.util.*;
 
 public class CO2Server {
-    private static final int PORT = 5000;
+
+    private static final int PORT = 43;
 
     public static void main(String[] args) {
-        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-            System.out.println("CO2 Server started on port " + PORT);
+        System.out.println("CO2 Server started on port " + PORT);
 
+        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             while (true) {
+                System.out.println("Waiting for a client connection...");
                 Socket clientSocket = serverSocket.accept();
-                System.out.println("New client connected: " + clientSocket.getInetAddress());
-                new ClientHandler(clientSocket).start();
+                System.out.println("Client connected: " + clientSocket.getInetAddress());
+
+                
+                handleClient(clientSocket);
             }
         } catch (IOException e) {
-            System.err.println("Server Error: " + e.getMessage());
+            System.out.println("Server error: " + e.getMessage());
         }
     }
-}
 
-class ClientHandler extends Thread {
-    private final Socket socket;
-
-    public ClientHandler(Socket socket) {
-        this.socket = socket;
-    }
-
-    public void run() {
+    private static void handleClient(Socket clientSocket) {
         try (
-            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true)
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
         ) {
-            Object obj;
-            while ((obj = in.readObject()) != null) {
-                if (obj instanceof Transaction) {
-                    Transaction t = (Transaction) obj;
-                    System.out.println("Received: " + t.getFormattedTransaction());
-                    out.println("Server received transaction at " + new Date());
-                }
+            String inputLine;
+
+            while ((inputLine = in.readLine()) != null) {
+                System.out.println("Received: " + inputLine);
+
+               
+                out.println("Server received: " + inputLine);
+
+                
+                writeToCSV(inputLine);
             }
-        } catch (EOFException e) {
+
             System.out.println("Client disconnected.");
-        } catch (IOException | ClassNotFoundException e) {
-            System.err.println("Error handling client: " + e.getMessage());
+        } catch (IOException e) {
+            System.out.println("Error handling client: " + e.getMessage());
+        } finally {
+            try {
+                clientSocket.close();
+            } catch (IOException e) {
+                System.out.println("Error closing socket: " + e.getMessage());
+            }
         }
     }
-}
 
-class Transaction implements Serializable {
-    private final Date timestamp;
-    private final String type;
-    private final double reading;
-
-    public Transaction(String type, double reading) {
-        this.timestamp = new Date();
-        this.type = type;
-        this.reading = reading;
-    }
-
-    
-    public String getFormattedTransaction() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        return String.format("[%s] %-15s %.2f ppm", sdf.format(timestamp), type, reading);
+    private static void writeToCSV(String data) {
+        try (FileWriter fw = new FileWriter("CO2_Data.csv", true);
+             BufferedWriter bw = new BufferedWriter(fw);
+             PrintWriter pw = new PrintWriter(bw)) {
+            pw.println(data);
+        } catch (IOException e) {
+            System.out.println("Error writing to file: " + e.getMessage());
+        }
     }
 }
