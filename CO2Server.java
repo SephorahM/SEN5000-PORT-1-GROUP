@@ -3,61 +3,42 @@ import java.net.*;
 
 public class CO2Server {
 
-    private static final int PORT = 43;
+    private static final int PORT = 43; 
+    private static boolean running = true;
 
-    public static void main(String[] args) {
-        System.out.println("CO2 Server started on port " + PORT);
-
+    public static void startServer() {
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-            while (true) {
-                System.out.println("Waiting for a client connection...");
+            System.out.println("CO2 Server started on port " + PORT + "...");
+            System.out.println("Waiting for clients to connect...");
+
+            while (running) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("Client connected: " + clientSocket.getInetAddress());
 
-                
-                handleClient(clientSocket);
-            }
-        } catch (IOException e) {
-            System.out.println("Server error: " + e.getMessage());
-        }
-    }
-
-    private static void handleClient(Socket clientSocket) {
-        try (
-            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-        ) {
-            String inputLine;
-
-            while ((inputLine = in.readLine()) != null) {
-                System.out.println("Received: " + inputLine);
-
-               
-                out.println("Server received: " + inputLine);
+                // Create reader and writer for client
+                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
 
                 
-                writeToCSV(inputLine);
-            }
+                String clientMessage = in.readLine();
+                if (clientMessage != null) {
+                    System.out.println("Received from client: " + clientMessage);
+                    out.println("Server received: " + clientMessage);
+                }
 
-            System.out.println("Client disconnected.");
-        } catch (IOException e) {
-            System.out.println("Error handling client: " + e.getMessage());
-        } finally {
-            try {
+                
+                in.close();
+                out.close();
                 clientSocket.close();
-            } catch (IOException e) {
-                System.out.println("Error closing socket: " + e.getMessage());
+                System.out.println("Client disconnected.");
             }
+
+        } catch (IOException e) {
+            System.err.println("Server error: " + e.getMessage());
         }
     }
 
-    private static void writeToCSV(String data) {
-        try (FileWriter fw = new FileWriter("CO2_Data.csv", true);
-             BufferedWriter bw = new BufferedWriter(fw);
-             PrintWriter pw = new PrintWriter(bw)) {
-            pw.println(data);
-        } catch (IOException e) {
-            System.out.println("Error writing to file: " + e.getMessage());
-        }
+    public static void stopServer() {
+        running = false;
     }
 }
