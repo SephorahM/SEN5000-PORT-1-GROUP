@@ -60,18 +60,14 @@ public class CO2Server extends JFrame implements Runnable {
     }
 
     public void startServer() {
-        running = false;
-        try {
-            if (serverSocket != null && !serverSocket.isClosed()) {
-                serverSocket.close();
-            }
-        } catch (IOException e) {
-            log("Error stopping server: " + e.getMessage());
+        if (running) {
+            log("Server is running");
+            return;
         }
-
+        running = true;
         startButton.setEnabled(true);
         stopButton.setEnabled(false);
-        log("Server stopped");
+
     }
 
     public void run() {
@@ -79,7 +75,7 @@ public class CO2Server extends JFrame implements Runnable {
 
         try (ServerSocket server = new ServerSocket(PORT)) {
             this.serverSocket = server;
-            log("Waiting for client connections...");
+            log("Waiting for client connections");
 
             while (running) {
                 try {
