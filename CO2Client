@@ -1,116 +1,42 @@
-import java.awt.*;
 import java.io.*;
-import java.net.Socket;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import javax.swing.*;
-
-class Transaction implements Serializable {
-    private final Date timestamp;
-    private final String type;
-    private final double reading;
-
-    public Transaction(String type, double reading) {
-        this.timestamp = new Date();
-        this.type = type;
-        this.reading = reading;
-    }
-
-    public String getFormattedTransaction() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        return String.format("[%s] %-15s %.2f ppm", sdf.format(timestamp), type, reading);
-    }
-}
+import java.net.*;
+import java.util.Scanner;
 
 public class CO2Client {
-    private static final String SERVER_IP = "127.0.0.1";
-    private static final int SERVER_PORT = 5000;
+
+    private static final String SERVER_IP = "localhost";
+    private static final int PORT = 43;
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("CO2 Reading Tracker");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setSize(600, 500);
-            frame.setLocationRelativeTo(null);
-            showLoginPage(frame);
-            frame.setVisible(true);
-        });
-    }
+        System.out.println("Connecting to CO2 Server...");
 
-    private static void showLoginPage(JFrame frame) {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBackground(new Color(220, 220, 220));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(5, 5, 5, 5);
+        try (
+            Socket socket = new Socket(SERVER_IP, PORT);
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            Scanner scanner = new Scanner(System.in);
+        ) {
+            System.out.println("Connected to server!");
+            String userInput;
 
-        JLabel welcomeLabel = new JLabel("Welcome to CO2 Reading Tracker", JLabel.CENTER);
-        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        welcomeLabel.setForeground(Color.BLUE);
+            while (true) {
+                System.out.print("Enter CO2 data (or type 'exit' to quit): ");
+                userInput = scanner.nextLine();
 
-        JTextField userIDField = new JTextField();
-        JTextField postcodeField = new JTextField();
-        JButton loginButton = new JButton("Login");
-        JButton createAccountButton = new JButton("Create Account");
-        JLabel errorLabel = new JLabel("", JLabel.CENTER);
-        errorLabel.setForeground(Color.RED);
+                if (userInput.equalsIgnoreCase("exit")) {
+                    System.out.println("Disconnecting...");
+                    break;
+                }
 
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        panel.add(welcomeLabel, gbc);
+                out.println(userInput);
 
-        gbc.gridy++;
-        gbc.gridwidth = 1;
-        panel.add(new JLabel("USER ID:"), gbc);
-        gbc.gridx = 1;
-        panel.add(userIDField, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy++;
-        panel.add(new JLabel("POSTCODE:"), gbc);
-        gbc.gridx = 1;
-        panel.add(postcodeField, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy++;
-        gbc.gridwidth = 2;
-        panel.add(loginButton, gbc);
-
-        gbc.gridy++;
-        panel.add(createAccountButton, gbc);
-
-        gbc.gridy++;
-        panel.add(errorLabel, gbc);
-
-        frame.setContentPane(panel);
-        frame.pack();
-
-        
-        loginButton.addActionListener(e -> {
-            String postcode = postcodeField.getText().trim();
-            String userID = userIDField.getText().trim();
-
-            if (postcode.length() < 5 || postcode.length() > 9 || userID.isEmpty()) {
-                errorLabel.setText("Invalid User ID or Postcode!");
-                return;
-            }
-
-            try (Socket socket = new Socket(SERVER_IP, SERVER_PORT);
-                 ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
-
-                Transaction transaction = new Transaction("CO2 Reading", Math.random() * 400 + 350);
-                out.writeObject(transaction);
-                out.flush();
-
+                
                 String response = in.readLine();
-                JOptionPane.showMessageDialog(frame, "Server Response: " + response);
-
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(frame, "Could not connect to server!", "Error", JOptionPane.ERROR_MESSAGE);
-                ex.printStackTrace();
+                System.out.println(response);
             }
-        });
+
+        } catch (IOException e) {
+            System.out.println("Client error: " + e.getMessage());
+        }
     }
 }
