@@ -75,7 +75,7 @@ public class CO2Server extends JFrame implements Runnable {
     }
 
     public void run() {
-        initializeCSV();
+        initialiseCSV();
 
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             this.serverSocket = server;
@@ -96,4 +96,53 @@ public class CO2Server extends JFrame implements Runnable {
     }
 
     private void handleClient
+
+    private void saveReading(String data) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(SERVER_CSV, true))) {
+            if (new File(SERVER_CSV).length() == 0) {
+                writer.write("Timestamp, UserID, Name, Postcode, CO2_PPM\n");
+            } 
+            String timestamp = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(new Date());
+            writer.write(timestamp + "," + data + "\n");
+        }catch (IOException e) {
+                log("Error saving data: " + e.getMessage());
+        }
+    }
+
+    private void initialiseCSV() {
+        File file = new File(SERVER_CSV);
+        if (!file.exists()) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+                writer.write("Timestamp, UserID, Name, Postcode, CO2_PPM\n");
+            } catch (IOException e) {
+                log("Error initialising CSV: " + e.getMessage());
+            }
+        }
+    }
+
+    private void loadCSVData() {
+        tableModel.setRowCount(0);
+        try (BufferedReader reader = new BufferedReader(new FileReader(SERVER_CSV))) {
+            reader.readLine();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                tableModel.addRow(parts);
+            }
+            log("Data refreshed");
+        } catch (IOException e) {
+            log("Error loading data: " + e.getMessage());
+        }
+    }
+
+    private void log(String message) {
+        SwingUtilities.invokeLater(() -> {
+            logArea.append(message + "\n");
+            logArea.setCaretPosition(logArea.getDocument().getLength());
+        });
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new CO2Server().setVisible(true));
+    }
 }
