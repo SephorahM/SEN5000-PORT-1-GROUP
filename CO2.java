@@ -153,14 +153,7 @@ public class CO2 {
         clientButton.setFont(new Font("Arial", Font.BOLD, 16));
         serverButton.setFont(new Font("Arial", Font.BOLD, 16));
 
-        // Update server button action listener to show "coming soon" message
-        serverButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(frame, 
-                "Server functionality will be implemented in future version.", 
-                "Server Access", 
-                JOptionPane.INFORMATION_MESSAGE);
-        });
-
+       
         // Keep client button action listener to show login page
         clientButton.addActionListener(e -> showLoginPage(frame));
 
