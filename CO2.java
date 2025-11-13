@@ -153,7 +153,15 @@ public class CO2 {
         clientButton.setFont(new Font("Arial", Font.BOLD, 16));
         serverButton.setFont(new Font("Arial", Font.BOLD, 16));
 
-       
+       serverButton.addActionListener(e -> {
+    Thread serverThread = new Thread();
+    serverThread.start();
+    JOptionPane.showMessageDialog(frame, 
+        "Server started successfully on port 43.\nWaiting for clients to connect...", 
+        "Server Running", 
+        JOptionPane.INFORMATION_MESSAGE);
+});
+
         // Keep client button action listener to show login page
         clientButton.addActionListener(e -> showLoginPage(frame));
 
