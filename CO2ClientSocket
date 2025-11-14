@@ -1,43 +1,29 @@
 import java.io.*;
 import java.net.*;
-import java.util.Scanner;
 
-public class CO2Client {
+public class CO2ClientSocket extends Thread {
 
-    private static final String SERVER_IP = "localhost";
-    private static final int PORT = 43;
+    private final String message;
 
-    public static void main(String[] args) {
-        System.out.println("Connecting to CO2 Server...");
+    public CO2ClientSocket(String message) {
+        this.message = message;
+    }
 
+    @Override
+    public void run() {
         try (
-            Socket socket = new Socket(SERVER_IP, PORT);
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            Socket socket = new Socket("localhost", 43);
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            Scanner scanner = new Scanner(System.in);
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true)
         ) {
-            System.out.println("Connected to server!");
-            String userInput;
+            out.println(message);
+            System.out.println("Sent: " + message);
 
-            while (true) {
-                System.out.print("Enter CO2 data (or type 'exit' to quit): ");
-                userInput = scanner.nextLine();
-
-                if (userInput.equalsIgnoreCase("exit")) {
-                    System.out.println("Disconnecting...");
-                    break;
-                }
-
-                // Send data to server
-                out.println(userInput);
-
-                // Read server response
-                String response = in.readLine();
-                System.out.println(response);
-            }
+            String response = in.readLine();
+            System.out.println("Server says: " + response);
 
         } catch (IOException e) {
-            System.out.println("Client error: " + e.getMessage());
+            System.out.println("Connection error: " + e.getMessage());
         }
     }
 }
