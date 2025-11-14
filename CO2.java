@@ -650,24 +650,25 @@ public class CO2 {
                 String timestamp = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(new Date());
                 
                 // Write directly to CSV file
-                try (BufferedWriter writer = new BufferedWriter(new FileWriter(CSV_FILE, true))) {
-                    String csvLine = String.format("%s,%s,%s,%s,%.2f%n",
-                        timestamp, submittedUserId, userName, postcode, co2Value);
-                    writer.write(csvLine);
-                    writer.flush();
-                    
-                    JOptionPane.showMessageDialog(co2Frame, 
-                        String.format("Reading submitted successfully!\nTimestamp: %s\nCO2 Level: %.2f ppm", 
-                            timestamp, co2Value),
-                        "Success", 
-                        JOptionPane.INFORMATION_MESSAGE);
-                    postcodeField.setText("");
-                    co2Field.setText("");
-                    postcodeField.requestFocus();
+                //shagun
+String csvLine = String.format("%s,%s,%s,%s,%.2f",
+        timestamp, submittedUserId, userName, postcode, co2Value);
 
-                } catch (IOException ex) {
-                    errorLabel.setText("Error saving reading: " + ex.getMessage());
-                }
+// Send to server using socket client
+boolean ok = CO2ClientSocket.sendReadingToServer(csvLine);
+
+if (ok) {
+    JOptionPane.showMessageDialog(co2Frame,
+            "Reading sent to server successfully!",
+            "Success",
+            JOptionPane.INFORMATION_MESSAGE);
+    postcodeField.setText("");
+    co2Field.setText("");
+    postcodeField.requestFocus();
+} else {
+    errorLabel.setText("Could not connect to server!");
+}
+
             } catch (NumberFormatException ex) {
                 errorLabel.setText("Invalid CO2 reading format!");
             }
@@ -731,3 +732,4 @@ public class CO2 {
         return "Strong";
     }
 }
+
