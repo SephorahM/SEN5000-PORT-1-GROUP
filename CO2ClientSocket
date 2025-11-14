@@ -1,29 +1,66 @@
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.net.Socket;
 
-public class CO2ClientSocket extends Thread {
+/**
+ * Full client-side socket program.
+ * Uses inheritance (extends Thread) and Runnable behaviour.
+ * Connects to server on port 43 and sends one CSV reading.
+ */
+public class CO2ClientSocket extends Thread implements Runnable {
 
-    private final String message;
+    private final String messageToSend;
+    private final String host;
+    private final int port;
 
-    public CO2ClientSocket(String message) {
-        this.message = message;
+    private boolean sentSuccessfully = false;
+
+    // Constructor (required – GUI will create an object with the CSV line)
+    public CO2ClientSocket(String messageToSend) {
+        this(messageToSend, "localhost", 43);
     }
 
+    public CO2ClientSocket(String messageToSend, String host, int port) {
+        this.messageToSend = messageToSend;
+        this.host = host;
+        this.port = port;
+    }
+
+    /**
+     * Static helper used directly by GUI:
+     * boolean ok = CO2ClientSocket.sendReadingToServer(csvLine);
+     */
+    public static boolean sendReadingToServer(String csvLine) {
+        CO2ClientSocket client = new CO2ClientSocket(csvLine);
+        client.start();  // starts the thread
+        try {
+            client.join(); // wait until thread finishes sending
+        } catch (InterruptedException e) {
+            return false;
+        }
+        return client.sentSuccessfully;
+    }
+
+    /**
+     * Thread runner — this is where the client connects to server.
+     */
     @Override
     public void run() {
-        try (
-            Socket socket = new Socket("localhost", 43);
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true)
-        ) {
-            out.println(message);
-            System.out.println("Sent: " + message);
+        try (Socket socket = new Socket(host, port);
+             PrintWriter writer = new PrintWriter(
+                     new OutputStreamWriter(socket.getOutputStream()), true)) {
 
-            String response = in.readLine();
-            System.out.println("Server says: " + response);
+            writer.println(messageToSend);
+            sentSuccessfully = true;
 
         } catch (IOException e) {
-            System.out.println("Connection error: " + e.getMessage());
+            System.out.println("Client error: " + e.getMessage());
+            sentSuccessfully = false;
         }
+    }
+
+    public boolean wasSentSuccessfully() {
+        return sentSuccessfully;
     }
 }
