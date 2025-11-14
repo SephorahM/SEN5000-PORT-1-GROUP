@@ -60,13 +60,20 @@ public class CO2Server extends JFrame implements Runnable {
     }
 
     public void startServer() {
-        if (running) {
-            log("Server is running");
-            return;
-        }
-        running = true;
-        startButton.setEnabled(true);
-        stopButton.setEnabled(false);
+    if (running) {
+        log("Server already running");
+        return;
+    }
+
+    running = true;
+    startButton.setEnabled(false);
+    stopButton.setEnabled(true);
+
+    serverThread = new Thread(this);  // THIS STARTS run()
+    serverThread.start();
+
+    log("Server started.");
+}
 
     }
 
