@@ -75,7 +75,6 @@ public class CO2Server extends JFrame implements Runnable {
     log("Server started.");
 }
 
-    }
 
     public void run() {
         initialiseCSV();
