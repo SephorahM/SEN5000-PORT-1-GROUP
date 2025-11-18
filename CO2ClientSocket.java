@@ -3,11 +3,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-/**
- * Full client-side socket program.
- * Uses inheritance (extends Thread) and Runnable behaviour.
- * Connects to server on port 43 and sends one CSV reading.
- */
+//Connects to server on port 43 and sends one CSV reading.
+ 
 public class CO2ClientSocket extends Thread implements Runnable {
 
     private final String messageToSend;
@@ -27,10 +24,7 @@ public class CO2ClientSocket extends Thread implements Runnable {
         this.port = port;
     }
 
-    /**
-     * Static helper used directly by GUI:
-     * boolean ok = CO2ClientSocket.sendReadingToServer(csvLine);
-     */
+    
     public static boolean sendReadingToServer(String csvLine) {
         CO2ClientSocket client = new CO2ClientSocket(csvLine);
         client.start();  // starts the thread
@@ -42,9 +36,8 @@ public class CO2ClientSocket extends Thread implements Runnable {
         return client.sentSuccessfully;
     }
 
-    /**
-     * Thread runner — this is where the client connects to server.
-     */
+    // the client connects to server.
+     
     @Override
     public void run() {
         try (Socket socket = new Socket(host, port);
