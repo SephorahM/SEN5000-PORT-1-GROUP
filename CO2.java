@@ -158,10 +158,6 @@ public class CO2 {
     CO2Server serverApp = new CO2Server();
     serverApp.setVisible(true);
 
-    JOptionPane.showMessageDialog(frame, 
-        "Server started successfully on port 43.\nWaiting for clients to connect...", 
-        "Server Running", 
-        JOptionPane.INFORMATION_MESSAGE);
 });
 
 
