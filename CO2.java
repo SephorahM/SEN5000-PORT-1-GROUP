@@ -653,7 +653,6 @@ public class CO2 {
                 String timestamp = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(new Date());
                 
                 // Write directly to CSV file
-                //shagun
 String csvLine = String.format("%s,%s,%s,%s,%.2f",
         timestamp, submittedUserId, userName, postcode, co2Value);
 
