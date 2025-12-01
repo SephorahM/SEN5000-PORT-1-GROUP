@@ -414,11 +414,11 @@ public class CO2 {
     private static void showCO2ReadingPage(JFrame parentFrame, String userId, String userName) {
         //User user = users.get(userId);
         /*sendToServer("LOGIN:" + userId + ";" + password);
-        String userName = user != null ? user.getName() : userId;
+        String userName = user != null ? user.getName() : userId;*/
 
         JFrame co2Frame = new JFrame("CO2 Reading Input");
         co2Frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        co2Frame.setSize(500, 400);*/
+        co2Frame.setSize(500, 400);
 
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(new Color(240, 240, 240));
@@ -530,7 +530,7 @@ public class CO2 {
         submitButton.addActionListener(e -> {
             try {
                 String postcode = postcodeField.getText().trim();
-                String co2Reading = co2Field.getText().trim());
+                String co2Reading = co2Field.getText().trim();
                 
                 if (postcode.isEmpty() || co2Reading.isEmpty()) {
                     errorLabel.setText("Please fill in all fields.");
@@ -545,14 +545,17 @@ public class CO2 {
                 }
 
                 String message = "SEND_READING;"
-                + userId + ";"
-                + postcode + ";"
-                + co2Value;
+                    + userId + ";"
+                    + postcode + ";"
+                    + co2Value;
         
                 String response = CO2ClientSocket.sendToServer(message);
 
                 JOptionPane.showMessageDialog(
-                    parentFrame, response, "Server Response", JOptionPane.INFORMATION_MESSAGE
+                    parentFrame,
+                    response,
+                    "Server Response",
+                    JOptionPane.INFORMATION_MESSAGE
                 );
 
                 postcodeField.setText("");
@@ -562,7 +565,8 @@ public class CO2 {
              } catch (NumberFormatException ex) {
                 errorLabel.setText("Invalid CO2 reading format!");
             }
-
+        
+        });
             // Send to server using socket client
             /*boolean ok = CO2ClientSocket.sendReadingToServer(csvLine);
 
@@ -578,7 +582,7 @@ public class CO2 {
                 errorLabel.setText("Could not connect to server!");
             }*/
 
-        }
+        
         gbc.gridy = 6;
         gbc.gridx = 0;
         gbc.gridwidth = 2;
