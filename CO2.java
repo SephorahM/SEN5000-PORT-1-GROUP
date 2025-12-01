@@ -5,117 +5,10 @@ import java.util.*;
 import javax.swing.*;
 
 
-class Transaction implements Serializable {
-    private final Date timestamp;
-    private final String type;
-    private final double reading;
-
-    public Transaction(String type, double reading) {
-        this.timestamp = new Date();
-        this.type = type;
-        this.reading = reading;
-    }
-
-    public String getFormattedTransaction() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        return String.format("[%s] %-15s £%.2f", sdf.format(timestamp), type, reading);
-    }
-}
-
-class User implements Serializable {
-    private final String userId;
-    private final String name;
-    private final String password;
-
-    public User(String userId, String name, String password) {
-        this.userId = userId;
-        this.name = name;
-        this.password = password;
-    }
-
-    public String getUserId() { return userId; }
-    public String getName() { return name; }
-    public String getPassword() { return password; }
-}
-
 public class CO2 {
-    private static Set<String> existingUserIds = new HashSet<>();
-    private static Map<String, User> users = new HashMap<>();
-   // private static final String CSV_FILE = "co2_readings.csv";
-   // private static final String USERS_CSV = "users.csv";  // New constant
-
-    // Add new method to save users
-    /*private static void saveUsers() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(USERS_CSV))) {
-            writer.write("UserID,Name,Password\n");
-            for (User user : users.values()) {
-                writer.write(String.format("%s,%s,%s%n", 
-                    user.getUserId(), 
-                    user.getName(), 
-                    user.getPassword()));
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }*/
-
-    // Add new method to load users
-    /*private static void loadUsers() {
-        File file = new File(USERS_CSV);
-        if (!file.exists()) {
-            try {
-                file.createNewFile();
-                try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                    writer.write("UserID,Name,Password\n");
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return;
-        }
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            reader.readLine(); // Skip header
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length == 3) {
-                    User user = new User(parts[0], parts[1], parts[2]);
-                    users.put(parts[0], user);
-                    existingUserIds.add(parts[0]);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }*/
-
-    // Add this method to initialize CSV file
-    private static void initializeCSV() {
-        File file = new File(CSV_FILE);
-        System.out.println("CSV File path: " + file.getAbsolutePath());
-        try {
-            if (!file.exists()) {
-                file.createNewFile();
-                try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                    writer.write("Timestamp,UserID,Name,Postcode,CO2_PPM\n");
-                    writer.flush();
-                }
-                System.out.println("Created new CSV file");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, 
-                "Error creating CSV file: " + e.getMessage(), 
-                "Error", 
-                JOptionPane.ERROR_MESSAGE);
-        }
-    }
 
     // Update main method
     public static void main(String[] args) {
-        initializeCSV();
-        loadUsers(); // Load existing users
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("CO2 reading tracker");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -139,8 +32,8 @@ public class CO2 {
         welcomeLabel.setForeground(new Color(0, 102, 204));
 
         // Question Label
-        JLabel questionLabel = new JLabel("Please select your role:", JLabel.CENTER);
-        questionLabel.setFont(new Font("Arial", Font.PLAIN, 18));
+        /*JLabel questionLabel = new JLabel("Please select your role:", JLabel.CENTER);
+        questionLabel.setFont(new Font("Arial", Font.PLAIN, 18));*/
 
         // Buttons
         JButton clientButton = new JButton("Client");
@@ -158,18 +51,6 @@ public class CO2 {
         gbc.gridy = 0;
         gbc.gridwidth = 2;
         panel.add(welcomeLabel, gbc);
-
-        gbc.gridy = 1;
-        gbc.insets = new Insets(30, 10, 30, 10);
-        panel.add(questionLabel, gbc);
-
-        gbc.gridy = 2;
-        gbc.gridwidth = 1;
-        gbc.insets = new Insets(10, 10, 10, 10);
-        panel.add(clientButton, gbc);
-
-        gbc.gridx = 1;
-        panel.add(serverButton, gbc);
 
         frame.setContentPane(panel);
         frame.revalidate();
@@ -191,13 +72,14 @@ public class CO2 {
         UserIDfield.setPreferredSize(new Dimension(200, 25));
         JPasswordField passwordField = new JPasswordField();
         passwordField.setPreferredSize(new Dimension(200, 25));
+        JLabel errorLabel = new JLabel("");
+        errorLabel.setForeground(Color.RED);
+        errorLabel.setHorizontalAlignment(JLabel.CENTER);
 
         JButton loginButton = new JButton("Login");
         JButton createAccountButton = new JButton("Create Account");
         createAccountButton.setPreferredSize(new Dimension(200, 25));
-        JLabel errorLabel = new JLabel("");
-        errorLabel.setForeground(Color.RED);
-        errorLabel.setHorizontalAlignment(JLabel.CENTER);
+        
         JLabel copyrightLabel = new JLabel("© 2025 CO2 tracker, Cardiff, UK", JLabel.CENTER);
         copyrightLabel.setFont(new Font("Arial", Font.ITALIC, 14));
         copyrightLabel.setForeground(Color.MAGENTA);
@@ -205,9 +87,19 @@ public class CO2 {
         // Update login validation
         loginButton.addActionListener(e -> {
             String userId = UserIDfield.getText().trim();
-            char[] password = passwordField.getPassword();
+            String password = new String(passwordField.getPassword());
             
-            if (userId.isEmpty() || password.length == 0) {
+            String response = CO2ClientSocket.sendToServer("Login;" + userId + ";" + password);
+
+            if (response.equals("Login Successful")) {
+                frame.getContentPane().removeAll();
+                showCO2ReadingPage(frame, userId);
+            } else {
+                errorLabel.setText("Invalid login.");
+            }
+        });
+
+            /*if (userId.isEmpty() || password.length == 0) {
                 errorLabel.setText("Please enter both User ID and Password!");
                 return;
             }
@@ -233,15 +125,15 @@ public class CO2 {
             
             // Open CO2 reading window
             showCO2ReadingPage(frame, userId);
-        });
+        });*/
 
         // Open the Create Account window when the button is clicked
-        createAccountButton.addActionListener(e -> {
-            UserIDfield.setText("");  // Clear user ID field
-            passwordField.setText(""); // Clear password field
-            errorLabel.setText("");    // Clear any error messages
-            showCreateAccountPage(frame);
-        });
+        createAccountButton.addActionListener(e ->
+           // UserIDfield.setText("");  // Clear user ID field
+           // passwordField.setText(""); // Clear password field
+           // errorLabel.setText("");    // Clear any error messages
+            showCreateAccountPage(frame));;
+        
 
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -348,24 +240,24 @@ public class CO2 {
         gbc.gridx = 1;
         panel.add(passwordField, gbc);
 
-    // Password strength label + bar (below password field)
-    gbc.gridy = 4;
-    gbc.gridx = 1;
-    JLabel pwdStrengthLabel = new JLabel("");
-    pwdStrengthLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-    JProgressBar pwdStrengthBar = new JProgressBar(0, 100);
-    pwdStrengthBar.setStringPainted(true);
-    pwdStrengthBar.setValue(0);
-    pwdStrengthBar.setPreferredSize(new Dimension(200, 12));
-    JPanel strengthPanel = new JPanel();
-    strengthPanel.setLayout(new BorderLayout(0, 4));
-    strengthPanel.setOpaque(false);
-    // hide the textual label — only show percentage on the bar
-    pwdStrengthLabel.setVisible(false);
-    // (label kept in layout but hidden to avoid layout shift)
-    strengthPanel.add(pwdStrengthLabel, BorderLayout.NORTH);
-    strengthPanel.add(pwdStrengthBar, BorderLayout.SOUTH);
-    panel.add(strengthPanel, gbc);
+        // Password strength label + bar (below password field)
+        gbc.gridy = 4;
+        gbc.gridx = 1;
+        JLabel pwdStrengthLabel = new JLabel("");
+        pwdStrengthLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        JProgressBar pwdStrengthBar = new JProgressBar(0, 100);
+        pwdStrengthBar.setStringPainted(true);
+        pwdStrengthBar.setValue(0);
+        pwdStrengthBar.setPreferredSize(new Dimension(200, 12));
+        JPanel strengthPanel = new JPanel();
+        strengthPanel.setLayout(new BorderLayout(0, 4));
+        strengthPanel.setOpaque(false);
+        // hide the textual label — only show percentage on the bar
+        pwdStrengthLabel.setVisible(false);
+        // (label kept in layout but hidden to avoid layout shift)
+        strengthPanel.add(pwdStrengthLabel, BorderLayout.NORTH);
+        strengthPanel.add(pwdStrengthBar, BorderLayout.SOUTH);
+        panel.add(strengthPanel, gbc);
 
         // Confirm Password
         gbc.gridy = 5;
@@ -428,7 +320,14 @@ public class CO2 {
             char[] pwd = passwordField.getPassword();
             char[] confirm = confirmPasswordField.getPassword();
             
-            if (name.isEmpty()) {
+            String response = CO2ClientSocket.sendToServer(
+                "CREATE_USER;" + name + ";" + newUser + ";" + pwd
+            );
+
+            JOptionPane.showMessageDialog(createFrame, "Account created!");
+            createFrame.dispose();
+    
+            /*if (name.isEmpty()) {
                 JOptionPane.showMessageDialog(createFrame, "Please enter your name.", "Validation", JOptionPane.WARNING_MESSAGE);
                 return;
             }
@@ -472,14 +371,15 @@ public class CO2 {
             users.put(newUser, newUserObj);
             existingUserIds.add(newUser);
             //saveUsers(); // Save updated users list
-            CREATE_USER;<userId>;<name>;<password>
+            String command = "CREATE_USER;" + newUser + ";" + name + ";" + new String(pwd);
+            String response = sendToServer(command);
             
-            String response = input.readLine();
             if (response.startsWith("OK")) {
                 JOptionPane.showMessageDialog(createFrame, "Account created!");
+                createFrame.dispose();
             } else {
                 JOptionPane.showMessageDialog(createFrame, "Error: " + response);
-            }
+            }*/
 
             // Success - placeholder action
             JOptionPane.showMessageDialog(createFrame, "Account created for: " + name, "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -511,14 +411,14 @@ public class CO2 {
         createFrame.setVisible(true);
     }
 
-    private static void showCO2ReadingPage(JFrame parentFrame, String userId) {
+    private static void showCO2ReadingPage(JFrame parentFrame, String userId, String userName) {
         //User user = users.get(userId);
-        sendToServer("LOGIN:" + userId + ";" + password);
+        /*sendToServer("LOGIN:" + userId + ";" + password);
         String userName = user != null ? user.getName() : userId;
 
         JFrame co2Frame = new JFrame("CO2 Reading Input");
         co2Frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        co2Frame.setSize(500, 400);
+        co2Frame.setSize(500, 400);*/
 
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(new Color(240, 240, 240));
@@ -628,48 +528,57 @@ public class CO2 {
 
         // Modify submit button action listener
         submitButton.addActionListener(e -> {
-            String submittedUserId = userIdField.getText().trim();
-            String postcode = postcodeField.getText().trim();
-            String co2Reading = co2Field.getText().trim();
-            
-            if (submittedUserId.isEmpty() || postcode.isEmpty() || co2Reading.isEmpty()) {
-                errorLabel.setText("Please fill in all fields!");
-                return;
-            }
-
             try {
-                double co2Value = Double.parseDouble(co2Reading);
-                if (co2Value <= 0) {
-                    errorLabel.setText("CO2 reading must be positive!");
+                String postcode = postcodeField.getText().trim();
+                String co2Reading = co2Field.getText().trim());
+                
+                if (postcode.isEmpty() || co2Reading.isEmpty()) {
+                    errorLabel.setText("Please fill in all fields.");
                     return;
                 }
 
-                String timestamp = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(new Date());
-                
-                // Write directly to CSV file
-String csvLine = String.format("%s,%s,%s,%s,%.2f",
-        timestamp, submittedUserId, userName, postcode, co2Value);
+                double co2Value = Double.parseDouble(co2Reading);
 
-// Send to server using socket client
-boolean ok = CO2ClientSocket.sendReadingToServer(csvLine);
+                if (co2Value <= 0) {
+                    errorLabel.setText("CO2 value must be positive.");
+                    return;
+                }
 
-if (ok) {
-    JOptionPane.showMessageDialog(co2Frame,
-            "Reading sent to server successfully!",
-            "Success",
-            JOptionPane.INFORMATION_MESSAGE);
-    postcodeField.setText("");
-    co2Field.setText("");
-    postcodeField.requestFocus();
-} else {
-    errorLabel.setText("Could not connect to server!");
-}
+                String message = "SEND_READING;"
+                + userId + ";"
+                + postcode + ";"
+                + co2Value;
+        
+                String response = CO2ClientSocket.sendToServer(message);
 
-            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(
+                    parentFrame, response, "Server Response", JOptionPane.INFORMATION_MESSAGE
+                );
+
+                postcodeField.setText("");
+                co2Field.setText("");
+                errorLabel.setText("");
+
+             } catch (NumberFormatException ex) {
                 errorLabel.setText("Invalid CO2 reading format!");
             }
-        });
 
+            // Send to server using socket client
+            /*boolean ok = CO2ClientSocket.sendReadingToServer(csvLine);
+
+            if (ok) {
+                JOptionPane.showMessageDialog(co2Frame,
+                        "Reading sent to server successfully!",
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+                postcodeField.setText("");
+                co2Field.setText("");
+                postcodeField.requestFocus();
+            } else {
+                errorLabel.setText("Could not connect to server!");
+            }*/
+
+        }
         gbc.gridy = 6;
         gbc.gridx = 0;
         gbc.gridwidth = 2;
