@@ -35,7 +35,10 @@ public class CO2ServerSocket extends Thread {
 
     // Thread to handle each client
     private static class ClientHandler extends Thread {
-        private Socket client;
+        private final Socket client;
+
+        private static final String USER_FILE = "users.csv";
+        private static final String READING_FILE = "co2_readings.csv";
 
         public ClientHandler(Socket client) {
             this.client = client;
@@ -48,9 +51,32 @@ public class CO2ServerSocket extends Thread {
                 PrintWriter out = new PrintWriter(client.getOutputStream(), true)
             ) {
                 String message = in.readLine();
+                if (message == null || message.isEmpty()) return;
+
                 System.out.println("Received: " + message);
 
                 out.println("Server received: " + message);
+
+                String[] parts = message.split(",", -1);
+                String command = parts[0].trim();
+
+                switch (command) {
+                    case "CREATE_USER":
+                        if (parts.length < 4) {
+                            out.println("ERROR: Invalid CREATE_USER format");
+                            break;
+                        }
+                        String userId = parts[1];
+                        String name = parts[2];
+                        String pwd = parts[3];
+
+                        if (appendToCSV(USER_FILE, userId + "," + name + "," + pwd)) {
+                            out.println("OK, User created");
+                        } else {
+                            out.println("ERROR: Could not save user");
+                        }
+                        break;
+                }
 
             } catch (IOException e) {
                 System.out.println("Client error: " + e.getMessage());

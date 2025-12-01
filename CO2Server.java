@@ -25,9 +25,8 @@ public class CO2Server {
     }
     
     public void start() {
-        initialiseCSVFiles();
+        initialiseCSV();
         running = true;
-
 
         try {
             ServerSocket server = new ServerSocket(PORT);
@@ -104,17 +103,17 @@ public class CO2Server {
     }
 
     private String processMessage(String message) {
-        String[] parts = message.split(";");
+        String[] p = message.split(",");
 
-        switch (parts[0]) {
+        switch (p[0]) {
             case "CREATE_USER":
-                return createUser(parts);
+                return createUser(p);
 
             case "LOGIN":
-                return loginUser(parts);
+                return loginUser(p);
 
             case "SEND_READING":
-                return saveReading(parts);
+                return saveReading(p);
             
             default:
                 return "ERROR: Unknown command";
@@ -138,11 +137,12 @@ public class CO2Server {
             }
 
             BufferedWriter writer = new BufferedWriter(new FileWriter(USERS_CSV, true));
-            writer.write(userId + ";" + name + ";" + password + "\n");
+            writer.write(userId + "," + name + "," + password + "\n");
             writer.close();
-            return "User Created";
+            return "OK: User Created";
             
         } catch (Exception e) {
+            e.printStackTrace();
             return "ERROR: Server failed";
         }
     }
@@ -159,10 +159,10 @@ public class CO2Server {
             for (String line : lines) {
                 String[] fields = line.split(",");
                 if (fields[0].equals(userId) && fields[2].equals(password))
-                    return "Login successful";
-            }
-
-        return "ERROR: Invalid credentials.";
+                    return "OK, Login successful, " + fields[1];
+                }
+        
+            return "ERROR: Invalid credentials.";
 
         } catch (Exception e) {
             return "ERROR: Server failed";
@@ -185,10 +185,10 @@ public class CO2Server {
             writer.write(timestamp + "," + userId + "," + name + "," + postcode + "," + ppm + "\n");
             writer.close();
 
-            return "Reading saved";
+            return "OK: Reading saved";
 
         }catch (Exception e) {
-                return "ERROR: Server failed";
+            return "ERROR: Server failed";
         }
     }
 
@@ -197,17 +197,19 @@ public class CO2Server {
             File users = new File(USERS_CSV);
             if (!users.exists()) {
                 BufferedWriter writer = new BufferedWriter(new FileWriter(users));
-                writer.write("UserID, Name, Password\n");
+                writer.write("UserID,Name,Password\n");
                 writer.close();
             }
 
             File readings = new File(READINGS_CSV);
             if (!readings.exists()) {
                 BufferedWriter writer = new BufferedWriter(new FileWriter(readings));
-                writer.write("Timestamp, UserID, Name, Postcode, PPM\n");
+                writer.write("Timestamp,UserID,Name,Postcode,PPM\n");
                 writer.close();
             }
-        } catch (IOException ignored) {}
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private List<String> readCSV(String file) throws Exception {

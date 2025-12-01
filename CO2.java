@@ -50,7 +50,7 @@ public class CO2 {
 
         gbc.gridy = 1;
         panel.add(clientButton,gbc);
-        
+
         frame.setContentPane(panel);
         frame.revalidate();
         frame.repaint();
@@ -88,10 +88,10 @@ public class CO2 {
             String userId = UserIDfield.getText().trim();
             String password = new String(passwordField.getPassword());
             
-            String response = CO2ClientSocket.sendToServer("LOGIN;" + userId + ";" + password);
+            String response = CO2ClientSocket.sendToServer("LOGIN," + userId + "," + password);
 
             if (response != null && response.startsWith("OK")) {
-                String userName = response.split(";", 2)[1];
+                String userName = response.split(",", 2)[1];
                 showCO2ReadingPage(frame, userId, userName);
             } else {
                 errorLabel.setText(response == null ? "No response from server." : response);
@@ -316,15 +316,22 @@ public class CO2 {
         createBtn.addActionListener(e -> {
             String name = nameField.getText().trim();
             String newUser = newUserField.getText().trim();
-            char[] pwd = passwordField.getPassword();
-            char[] confirm = confirmPasswordField.getPassword();
+            String pwd = new String(passwordField.getPassword());
+            String confirm = new String (confirmPasswordField.getPassword());
             
-            String response = CO2ClientSocket.sendToServer(
-                "CREATE_USER;" + name + ";" + newUser + ";" + pwd
-            );
+            if (name.isEmpty() || newUser.isEmpty() || pwd.isEmpty()) {
+                JOptionPane.showMessageDialog(createFrame, "All fields required");
+                return;
+            }
 
-            JOptionPane.showMessageDialog(createFrame, "Account created!");
-            createFrame.dispose();
+            if (!pwd.equals(confirm)) {
+                JOptionPane.showMessageDialog(createFrame, "Passwords do not match");
+                return;
+            }
+
+            String message = "CREATE_USER," + newUser + "," + name + "," + pwd;
+
+            String response = CO2ClientSocket.sendToServer(message);
     
             /*if (name.isEmpty()) {
                 JOptionPane.showMessageDialog(createFrame, "Please enter your name.", "Validation", JOptionPane.WARNING_MESSAGE);
@@ -381,11 +388,15 @@ public class CO2 {
             }*/
 
             // Success - placeholder action
-            JOptionPane.showMessageDialog(createFrame, "Account created for: " + name, "Success", JOptionPane.INFORMATION_MESSAGE);
+            if (response.startsWith("OK")) {
+                JOptionPane.showMessageDialog(createFrame, "Account created for: " + name, "Success", JOptionPane.INFORMATION_MESSAGE);
             // clear password arrays for security
-            Arrays.fill(pwd, '\0');
-            Arrays.fill(confirm, '\0');
-            createFrame.dispose();
+            //Arrays.fill(pwd, '\0');
+            //Arrays.fill(confirm, '\0');
+                createFrame.dispose();
+            } else {
+                JOptionPane.showMessageDialog(createFrame, response, "Error", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         cancelBtn.addActionListener(e -> createFrame.dispose());
@@ -543,9 +554,10 @@ public class CO2 {
                     return;
                 }
 
-                String message = "SEND_READING;"
-                    + userId + ";"
-                    + postcode + ";"
+                String message = "SEND_READING,"
+                    + userId + ","
+                    + userName + ","
+                    + postcode + ","
                     + co2Value;
         
                 String response = CO2ClientSocket.sendToServer(message);
