@@ -1,6 +1,4 @@
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 
 //Connects to server on port 43 and sends one CSV reading.
@@ -23,7 +21,6 @@ public class CO2ClientSocket extends Thread implements Runnable {
         this.host = host;
         this.port = port;
     }
-
     
     public static boolean sendReadingToServer(String csvLine) {
         CO2ClientSocket client = new CO2ClientSocket(csvLine);

@@ -1,65 +1,57 @@
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.*;
 import java.net.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.List;
+import java.util.concurrent.Semaphore;
 
-public class CO2Server extends JFrame implements Runnable {
+public class CO2Server {
 
-    private JTextArea logArea;
-    private JButton startButton, stopButton, refreshButton;
-    private JTable dataTable;
-    private DefaultTableModel tableModel;
+    private static final int PORT =43;
+    private static final int MAX_CLIENTS = 4;
+
+    private static final String USERS_CSV = "users.csv";
+    private static final String READINGS_CSV = "co2_readings.csv";
 
     private ServerSocket serverSocket;
     private Thread serverThread;
     private boolean running = false;
-    private static final int PORT = 43;
-    private static final String SERVER_CSV = "server_readings.csv";
 
-    public CO2Server() {
+    private final Semaphore clientLimiter = new Semaphore(MAX_CLIENTS);
 
-        setTitle("CO2 Server Dashboard");
-        setSize(500, 400);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setLayout(new BorderLayout(10, 10));
+    public static void main(String[] args) {
+        new CO2Server().start();
+    }
+    
+    public void start() {
+        initialiseCSVFiles();
+        running = true;
 
-        JPanel topPanel = new JPanel();
-        startButton = new JButton("Start server");
-        stopButton = new JButton("Stop server");
-        refreshButton = new JButton("Refresh Data");
-        stopButton.setEnabled(false);
 
-        topPanel.add(startButton);
-        topPanel.add(stopButton);
-        topPanel.add(refreshButton);
-        add(topPanel, BorderLayout.NORTH);
+        try {
+            ServerSocket server = new ServerSocket(PORT);
+            this.serverSocket = server;
+            System.out.println("CO2 Server running on port " + PORT);
 
-        logArea = new JTextArea();
-        logArea.setEditable(false);
-        JScrollPane logScroll = new JScrollPane(logArea);
-        logScroll.setBorder(BorderFactory.createTitledBorder("Server Log"));
-        add(logScroll, BorderLayout.CENTER);
+            while (running) {
+                Socket clientSocket = serverSocket.accept();
 
-        tableModel = new DefaultTableModel(
-            new String[]{"Timestamp", "UserID", "Name", "Postcode", "CO2 (ppm)"}, 0);
-        dataTable = new JTable(tableModel);
-        JScrollPane tableScroll = new JScrollPane(dataTable);
-        tableScroll.setBorder(BorderFactory.createTitledBorder("CO2 readings"));
-        add(tableScroll, BorderLayout.SOUTH);
+                if (!clientLimiter.tryAcquire()) {
+                    System.out.println("Connection denied (server full)");
+                    clientSocket.close();
+                    continue;
+                }
 
-        startButton.addActionListener(e -> startServer());
-        stopButton.addActionListener(e -> stopServer());
-        refreshButton.addActionListener(e -> loadCSVData());
-
-        initialiseCSV();
-        loadCSVData();
-        
+                System.out.println("Client connected: " + clientSocket.getInetAddress());
+                new Thread(() -> handleClient(clientSocket)).start();
+            }
+        } catch (IOException e) {
+            System.out.println("Server stopped.");
+        }
     }
 
-    public void startServer() {
+    /*public void startServer() {
     if (running) {
         log("Server already running");
         return;
@@ -73,28 +65,6 @@ public class CO2Server extends JFrame implements Runnable {
     serverThread.start();
 
     log("Server started.");
-}
-
-
-    public void run() {
-        initialiseCSV();
-
-        try (ServerSocket server = new ServerSocket(PORT)) {
-            this.serverSocket = server;
-            log("Waiting for client connections");
-
-            while (running) {
-                try {
-                    Socket clientSocket = serverSocket.accept();
-                    log("Client connected: " + clientSocket.getInetAddress());
-                    new Thread(() -> handleClient(clientSocket)).start();
-                } catch (SocketException se) {
-                    break;
-                }
-            }
-        } catch (IOException e) {
-            log("Server Error: " + e.getMessage());
-        }
     }
 
     private void stopServer() {
@@ -110,7 +80,7 @@ public class CO2Server extends JFrame implements Runnable {
         startButton.setEnabled(true);
         stopButton.setEnabled(false);
         log("Server stopped.");
-    }
+    }*/
 
     private void handleClient(Socket clientSocket) {
         try (
@@ -119,46 +89,138 @@ public class CO2Server extends JFrame implements Runnable {
         ) {
             String message = in.readLine();
             if (message != null) {
-                log("Received: " + message);
-                saveReading(message);
-                out.println("Server received: " + message);
-                SwingUtilities.invokeLater(this::loadCSVData);
+                System.out.println("Received: " + message);
+                out.println(processMessage(message));
             }
+
         } catch (IOException e) {
-            log("Client Error: " + e.getMessage());
+            System.out.println("Client disconnected.");
         } finally {
+            clientLimiter.release();
             try {
                 clientSocket.close();
-            } catch (IOException e) {
-                log("Error closing client socket: " + e.getMessage());
-            }
+            } catch (IOException ignored) {}
         }
     }
 
-    private void saveReading(String data) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(SERVER_CSV, true))) {
-            if (new File(SERVER_CSV).length() == 0) {
-                writer.write("Timestamp, UserID, Name, Postcode, CO2_PPM\n");
-            } 
+    private String processMessage(String message) {
+        String[] parts = message.split(";");
+
+        switch (parts[0]) {
+            case "CREATE_USER":
+                return createUser(parts);
+
+            case "LOGIN":
+                return loginUser(parts);
+
+            case "SEND_READING":
+                return saveReading(parts);
+            
+            default:
+                return "ERROR: Unknown command";
+        }
+    }
+
+    private String createUser(String[] p) {
+        if (p.length < 4) return "ERROR: Invalid user format";
+
+        String userId = p[1];
+        String name = p[2];
+        String password = p[3];
+
+        try {
+            List<String> lines = readCSV(USERS_CSV);
+        
+            for (String line : lines) {
+                String[] fields = line.split(",");
+                if (fields[0].equals(userId))
+                    return "Error: User ID already exists.";
+            }
+
+            BufferedWriter writer = new BufferedWriter(new FileWriter(USERS_CSV, true));
+            writer.write(userId + ";" + name + ";" + password + "\n");
+            writer.close();
+            return "User Created";
+            
+        } catch (Exception e) {
+            return "ERROR: Server failed";
+        }
+    }
+
+    private String loginUser(String[] p) {
+        if (p.length < 3) return "Error: Invalid login format.";
+
+        String userId = p[1];
+        String password = p[2];
+
+        try {
+            List<String> lines = readCSV(USERS_CSV);
+
+            for (String line : lines) {
+                String[] fields = line.split(",");
+                if (fields[0].equals(userId) && fields[2].equals(password))
+                    return "Login successful";
+            }
+
+        return "ERROR: Invalid credentials.";
+
+        } catch (Exception e) {
+            return "ERROR: Server failed";
+        }
+    }
+
+    private String saveReading(String[] p) {
+        if (p.length < 5) return "ERROR: Invalid reading format";
+
+        String userId = p[1];
+        String name = p[2];
+        String postcode = p[3];
+        String ppm = p[4];
+
+        try {
             String timestamp = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(new Date());
-            writer.write(timestamp + "," + data + "\n");
-        }catch (IOException e) {
-                log("Error saving data: " + e.getMessage());
+
+            BufferedWriter writer = new BufferedWriter(new FileWriter(READINGS_CSV, true));
+
+            writer.write(timestamp + "," + userId + "," + name + "," + postcode + "," + ppm + "\n");
+            writer.close();
+
+            return "Reading saved";
+
+        }catch (Exception e) {
+                return "ERROR: Server failed";
         }
     }
 
     private void initialiseCSV() {
-        File file = new File(SERVER_CSV);
-        if (!file.exists()) {
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                writer.write("Timestamp, UserID, Name, Postcode, CO2_PPM\n");
-            } catch (IOException e) {
-                log("Error initialising CSV: " + e.getMessage());
+        try {
+            File users = new File(USERS_CSV);
+            if (!users.exists()) {
+                BufferedWriter writer = new BufferedWriter(new FileWriter(users));
+                writer.write("UserID, Name, Password\n");
+                writer.close();
             }
-        }
+
+            File readings = new File(READINGS_CSV);
+            if (!readings.exists()) {
+                BufferedWriter writer = new BufferedWriter(new FileWriter(readings));
+                writer.write("Timestamp, UserID, Name, Postcode, PPM\n");
+                writer.close();
+            }
+        } catch (IOException ignored) {}
     }
 
-    private void loadCSVData() {
+    private List<String> readCSV(String file) throws Exception {
+        List<String> list = new ArrayList<>();
+        BufferedReader r = new BufferedReader(new FileReader(file));
+        String line;
+        r.readLine();
+        while ((line = r.readLine()) != null) list.add(line);
+            r.close();
+            return list;
+    }
+}
+    /*private void loadCSVData() {
         tableModel.setRowCount(0);
         try (BufferedReader reader = new BufferedReader(new FileReader(SERVER_CSV))) {
             reader.readLine();
@@ -183,4 +245,4 @@ public class CO2Server extends JFrame implements Runnable {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new CO2Server().setVisible(true));
     }
-}
+}*/

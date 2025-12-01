@@ -41,11 +41,11 @@ class User implements Serializable {
 public class CO2 {
     private static Set<String> existingUserIds = new HashSet<>();
     private static Map<String, User> users = new HashMap<>();
-    private static final String CSV_FILE = "co2_readings.csv";
-    private static final String USERS_CSV = "users.csv";  // New constant
+   // private static final String CSV_FILE = "co2_readings.csv";
+   // private static final String USERS_CSV = "users.csv";  // New constant
 
     // Add new method to save users
-    private static void saveUsers() {
+    /*private static void saveUsers() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(USERS_CSV))) {
             writer.write("UserID,Name,Password\n");
             for (User user : users.values()) {
@@ -57,10 +57,10 @@ public class CO2 {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
+    }*/
 
     // Add new method to load users
-    private static void loadUsers() {
+    /*private static void loadUsers() {
         File file = new File(USERS_CSV);
         if (!file.exists()) {
             try {
@@ -88,7 +88,7 @@ public class CO2 {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
+    }*/
 
     // Add this method to initialize CSV file
     private static void initializeCSV() {
@@ -144,22 +144,11 @@ public class CO2 {
 
         // Buttons
         JButton clientButton = new JButton("Client");
-        JButton serverButton = new JButton("Server");
         
         // Style buttons
         Dimension buttonSize = new Dimension(200, 40);
         clientButton.setPreferredSize(buttonSize);
-        serverButton.setPreferredSize(buttonSize);
         clientButton.setFont(new Font("Arial", Font.BOLD, 16));
-        serverButton.setFont(new Font("Arial", Font.BOLD, 16));
-
-       serverButton.addActionListener(e -> {
-    //  Launch the server
-    CO2Server serverApp = new CO2Server();
-    serverApp.setVisible(true);
-
-});
-
 
         // Keep client button action listener to show login page
         clientButton.addActionListener(e -> showLoginPage(frame));
@@ -482,8 +471,16 @@ public class CO2 {
             User newUserObj = new User(newUser, name, new String(pwd));
             users.put(newUser, newUserObj);
             existingUserIds.add(newUser);
-            saveUsers(); // Save updated users list
+            //saveUsers(); // Save updated users list
+            CREATE_USER;<userId>;<name>;<password>
             
+            String response = input.readLine();
+            if (response.startsWith("OK")) {
+                JOptionPane.showMessageDialog(createFrame, "Account created!");
+            } else {
+                JOptionPane.showMessageDialog(createFrame, "Error: " + response);
+            }
+
             // Success - placeholder action
             JOptionPane.showMessageDialog(createFrame, "Account created for: " + name, "Success", JOptionPane.INFORMATION_MESSAGE);
             // clear password arrays for security
@@ -515,7 +512,8 @@ public class CO2 {
     }
 
     private static void showCO2ReadingPage(JFrame parentFrame, String userId) {
-        User user = users.get(userId);
+        //User user = users.get(userId);
+        sendToServer("LOGIN:" + userId + ";" + password);
         String userName = user != null ? user.getName() : userId;
 
         JFrame co2Frame = new JFrame("CO2 Reading Input");
