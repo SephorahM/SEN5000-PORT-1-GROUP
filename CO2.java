@@ -31,12 +31,8 @@ public class CO2 {
         welcomeLabel.setFont(new Font("Arial", Font.BOLD, 28));
         welcomeLabel.setForeground(new Color(0, 102, 204));
 
-        // Question Label
-        /*JLabel questionLabel = new JLabel("Please select your role:", JLabel.CENTER);
-        questionLabel.setFont(new Font("Arial", Font.PLAIN, 18));*/
-
-        // Buttons
-        JButton clientButton = new JButton("Client");
+            // Buttons
+        JButton clientButton = new JButton("Go to Login");
         
         // Style buttons
         Dimension buttonSize = new Dimension(200, 40);
@@ -52,6 +48,9 @@ public class CO2 {
         gbc.gridwidth = 2;
         panel.add(welcomeLabel, gbc);
 
+        gbc.gridy = 1;
+        panel.add(clientButton,gbc);
+        
         frame.setContentPane(panel);
         frame.revalidate();
         frame.repaint();
@@ -89,13 +88,13 @@ public class CO2 {
             String userId = UserIDfield.getText().trim();
             String password = new String(passwordField.getPassword());
             
-            String response = CO2ClientSocket.sendToServer("Login;" + userId + ";" + password);
+            String response = CO2ClientSocket.sendToServer("LOGIN;" + userId + ";" + password);
 
-            if (response.equals("Login Successful")) {
-                frame.getContentPane().removeAll();
-                showCO2ReadingPage(frame, userId);
+            if (response != null && response.startsWith("OK")) {
+                String userName = response.split(";", 2)[1];
+                showCO2ReadingPage(frame, userId, userName);
             } else {
-                errorLabel.setText("Invalid login.");
+                errorLabel.setText(response == null ? "No response from server." : response);
             }
         });
 
@@ -132,7 +131,7 @@ public class CO2 {
            // UserIDfield.setText("");  // Clear user ID field
            // passwordField.setText(""); // Clear password field
            // errorLabel.setText("");    // Clear any error messages
-            showCreateAccountPage(frame));;
+            showCreateAccountPage(frame));
         
 
         gbc.gridx = 0;
