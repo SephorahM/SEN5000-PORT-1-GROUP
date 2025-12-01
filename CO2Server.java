@@ -216,8 +216,8 @@ public class CO2Server {
         String line;
         r.readLine();
         while ((line = r.readLine()) != null) list.add(line);
-            r.close();
-            return list;
+        r.close();
+        return list;
     }
 }
     /*private void loadCSVData() {

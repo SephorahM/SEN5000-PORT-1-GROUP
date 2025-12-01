@@ -22,7 +22,7 @@ public class CO2ClientSocket extends Thread implements Runnable {
         this.port = port;
     }
     
-    public static boolean sendReadingToServer(String csvLine) {
+    /*public static boolean sendReadingToServer(String csvLine) {
         CO2ClientSocket client = new CO2ClientSocket(csvLine);
         client.start();  // starts the thread
         try {
@@ -31,6 +31,20 @@ public class CO2ClientSocket extends Thread implements Runnable {
             return false;
         }
         return client.sentSuccessfully;
+    }*/
+
+    // Generic send-to-server function for ALL messages
+    public static String sendToServer(String message) {
+        try (Socket socket = new Socket("localhost", 43);
+             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+             PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
+
+            out.println(message);
+            return in.readLine();
+
+        } catch (IOException e) {
+            return "ERROR: Could not connect to server";
+        }
     }
 
     // the client connects to server.
