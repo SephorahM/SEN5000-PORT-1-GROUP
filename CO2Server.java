@@ -13,8 +13,6 @@ public class CO2Server {
 
     private static final String USERS_CSV = "users.csv";
     private static final String READINGS_CSV = "co2_readings.csv";
-    private static final String USER_FILE = "users.txt";
-    private static Map<String, String[]> users = new HashMap<>();
 
     private ServerSocket serverSocket;
     private Thread serverThread;
@@ -28,7 +26,6 @@ public class CO2Server {
     
     public void start() {
         initialiseCSV();
-        loadUsers();
         running = true;
 
         try {
@@ -52,6 +49,37 @@ public class CO2Server {
             System.out.println("Server stopped.");
         }
     }
+
+    /*public void startServer() {
+    if (running) {
+        log("Server already running");
+        return;
+    }
+
+    running = true;
+    startButton.setEnabled(false);
+    stopButton.setEnabled(true);
+
+    serverThread = new Thread(this);  // THIS STARTS run()
+    serverThread.start();
+
+    log("Server started.");
+    }
+
+    private void stopServer() {
+        running = false;
+        try {
+            if (serverSocket != null && !serverSocket.isClosed()) {
+                serverSocket.close();
+            }
+        } catch (IOException e) {
+            log("Error stopping server: " + e.getMessage());
+        }
+
+        startButton.setEnabled(true);
+        stopButton.setEnabled(false);
+        log("Server stopped.");
+    }*/
 
     private void handleClient(Socket clientSocket) {
         try (
@@ -111,8 +139,6 @@ public class CO2Server {
             BufferedWriter writer = new BufferedWriter(new FileWriter(USERS_CSV, true));
             writer.write(userId + "," + name + "," + password + "\n");
             writer.close();
-            users.put(userId, new String[]{name, password});
-            saveUsers();
             return "OK: User Created";
             
         } catch (Exception e) {
@@ -195,26 +221,30 @@ public class CO2Server {
         r.close();
         return list;
     }
-
-    private void loadUsers() {
-        File file = new File(USER_FILE);
-        if (!file.exists()) return;
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length >= 3) {
-                    users.put(parts[0], new String[]{parts[1], parts[2]});
-                }
-            }
-        } catch (IOException ignored) {}
-    }
-
-    private void saveUsers() {
-        try (PrintWriter pw = new PrintWriter(new FileWriter(USER_FILE))) {
-            for (Map.Entry<String, String[]> entry : users.entrySet()) {
-                pw.println(entry.getKey() + "," + entry.getValue()[0] + "," + entry.getValue()[1]);
-            }
-        } catch (IOException ignored) {}
-    }
 }
+    /*private void loadCSVData() {
+        tableModel.setRowCount(0);
+        try (BufferedReader reader = new BufferedReader(new FileReader(SERVER_CSV))) {
+            reader.readLine();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                tableModel.addRow(parts);
+            }
+            log("Data refreshed");
+        } catch (IOException e) {
+            log("Error loading data: " + e.getMessage());
+        }
+    }
+
+    private void log(String message) {
+        SwingUtilities.invokeLater(() -> {
+            logArea.append(message + "\n");
+            logArea.setCaretPosition(logArea.getDocument().getLength());
+        });
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new CO2Server().setVisible(true));
+    }
+}*/
