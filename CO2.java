@@ -91,7 +91,8 @@ public class CO2 {
             String response = CO2ClientSocket.sendToServer("LOGIN," + userId + "," + password);
 
             if (response != null && response.startsWith("OK")) {
-                String userName = response.split(",", 2)[1];
+                String[] parts = response.split(",", 2);
+                String userName = parts.length > 1 ? parts[1] : "User";
                 showCO2ReadingPage(frame, userId, userName);
             } else {
                 errorLabel.setText(response == null ? "No response from server." : response);

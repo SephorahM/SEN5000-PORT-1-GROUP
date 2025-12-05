@@ -1,7 +1,7 @@
 import java.io.*;
-import java.net.Socket;
+import java.net.*;
 
-//Connects to server on port 43 and sends one CSV reading.
+//Connects to server on port 5000 and sends one CSV reading.
  
 public class CO2ClientSocket extends Thread implements Runnable {
 
@@ -9,11 +9,15 @@ public class CO2ClientSocket extends Thread implements Runnable {
     private final String host;
     private final int port;
 
+    // Use port 5000 instead of 43 (43 is privileged and often blocked)
+    private static final String SERVER_HOST = "localhost";
+    private static final int SERVER_PORT = 5000;
+
     private boolean sentSuccessfully = false;
 
     // Constructor (required – GUI will create an object with the CSV line)
     public CO2ClientSocket(String messageToSend) {
-        this(messageToSend, "localhost", 43);
+        this(messageToSend, SERVER_HOST, SERVER_PORT);
     }
 
     public CO2ClientSocket(String messageToSend, String host, int port) {
@@ -22,28 +26,25 @@ public class CO2ClientSocket extends Thread implements Runnable {
         this.port = port;
     }
     
-    /*public static boolean sendReadingToServer(String csvLine) {
-        CO2ClientSocket client = new CO2ClientSocket(csvLine);
-        client.start();  // starts the thread
-        try {
-            client.join(); // wait until thread finishes sending
-        } catch (InterruptedException e) {
-            return false;
-        }
-        return client.sentSuccessfully;
-    }*/
-
     // Generic send-to-server function for ALL messages
     public static String sendToServer(String message) {
-        try (Socket socket = new Socket("localhost", 43);
+        try (Socket socket = new Socket(SERVER_HOST, SERVER_PORT);
              BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
              PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
+
+            // Prevent freezing: Timeout after 5 seconds if no response
+            socket.setSoTimeout(5000);
 
             out.println(message);
             return in.readLine();
 
+        } catch (ConnectException e) {
+            return "ERROR: Connection refused. Is server running on port " + SERVER_PORT + "?";
+        } catch (SocketTimeoutException e) {
+            return "ERROR: Server took too long to respond.";
         } catch (IOException e) {
-            return "ERROR: Could not connect to server";
+            e.printStackTrace();
+            return "ERROR: " + e.getMessage();
         }
     }
 
