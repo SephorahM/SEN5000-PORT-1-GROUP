@@ -75,6 +75,13 @@ public class CO2 {
         errorLabel.setForeground(Color.RED);
         errorLabel.setHorizontalAlignment(JLabel.CENTER);
 
+        gbc.gridy = 7;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel.add(errorLabel, gbc);
+
+
         JButton loginButton = new JButton("Login");
         JButton createAccountButton = new JButton("Create Account");
         createAccountButton.setPreferredSize(new Dimension(200, 25));
@@ -248,6 +255,16 @@ public class CO2 {
         gbc.gridx = 1;
         panel.add(confirmPasswordField, gbc);
 
+        JLabel errorLabel = new JLabel("");
+        errorLabel.setForeground(Color.RED);
+        errorLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        errorLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        gbc.gridy = 7;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel.add(errorLabel, gbc);
+
         // Buttons
         JButton createBtn = new JButton("Create");
         JButton cancelBtn = new JButton("Cancel");
@@ -260,6 +277,13 @@ public class CO2 {
         gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;
         panel.add(btnPanel, gbc);
+        
+        gbc.gridy = 7;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel.add(errorLabel, gbc);
+
 
         // Update password strength as user types — show percent on bar only
         passwordField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
