@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CO2Client",
+            "request": "launch",
+            "mainClass": "CO2Client",
+            "projectName": "SEN5000-PORT-1-GROUP_b167470d"
+        },
+        {
+            "type": "java",
             "name": "CO2Server",
             "request": "launch",
             "mainClass": "CO2Server",
