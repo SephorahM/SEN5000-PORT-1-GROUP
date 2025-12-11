@@ -9,6 +9,16 @@ public class CO2 {
 
     // Update main method
     public static void main(String[] args) {
+        String host = "localhost";
+        int port = 6060;
+
+        if (args.length >= 2) {
+            host = args[0];
+            port = Integer.parseInt(args[1]);
+        }
+
+        CO2ClientSocket.setServerConfig(host, port);
+        
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("CO2 reading tracker");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
