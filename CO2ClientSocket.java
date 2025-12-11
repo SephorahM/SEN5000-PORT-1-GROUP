@@ -1,7 +1,7 @@
 import java.io.*;
 import java.net.*;
 
-//Connects to server on port 5000 and sends one CSV reading.
+//Connects to server on port 6060 and sends one CSV reading.
  
 public class CO2ClientSocket extends Thread implements Runnable {
 
@@ -9,9 +9,9 @@ public class CO2ClientSocket extends Thread implements Runnable {
     private final String host;
     private final int port;
 
-    // Use port 5000 instead of 43 (43 is privileged and often blocked)
+    // Use port 6060 instead of 43 (43 is privileged and often blocked)
     private static final String SERVER_HOST = "localhost";
-    private static final int SERVER_PORT = 5000;
+    private static final int SERVER_PORT = 6060;  // Changed from 5050 to 6060
 
     private boolean sentSuccessfully = false;
 
@@ -32,16 +32,23 @@ public class CO2ClientSocket extends Thread implements Runnable {
              BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
              PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
 
-            // Prevent freezing: Timeout after 5 seconds if no response
-            socket.setSoTimeout(5000);
+            // Increase timeout to 10 seconds for debugging
+            socket.setSoTimeout(10000);
 
+            System.out.println("Attempting to connect to server at " + SERVER_HOST + ":" + SERVER_PORT);
+            System.out.println("Sending message: " + message);  // Log the message being sent
             out.println(message);
-            return in.readLine();
 
-        } catch (ConnectException e) {
-            return "ERROR: Connection refused. Is server running on port " + SERVER_PORT + "?";
+            String response = in.readLine();
+            System.out.println("Received response: " + response);  // Log the server's response
+            return response;
+
         } catch (SocketTimeoutException e) {
+            System.out.println("Error: Server took too long to respond.");
             return "ERROR: Server took too long to respond.";
+        } catch (ConnectException e) {
+            System.out.println("Error: Could not connect to server. Is it running on port " + SERVER_PORT + "?");
+            return "ERROR: Could not connect to server. Is it running on port " + SERVER_PORT + "?";
         } catch (IOException e) {
             e.printStackTrace();
             return "ERROR: " + e.getMessage();

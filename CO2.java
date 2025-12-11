@@ -88,44 +88,24 @@ public class CO2 {
             String userId = UserIDfield.getText().trim();
             String password = new String(passwordField.getPassword());
             
+            // Send login request to the server
             String response = CO2ClientSocket.sendToServer("LOGIN," + userId + "," + password);
 
             if (response != null && response.startsWith("OK")) {
+                // Extract user name from the server response
                 String[] parts = response.split(",", 2);
                 String userName = parts.length > 1 ? parts[1] : "User";
+
+                // Notify the server that the user has logged in
+                CO2ClientSocket.sendToServer("USER_LOGGED_IN," + userId);
+
+                // Open the CO2 reading input window
                 showCO2ReadingPage(frame, userId, userName);
             } else {
+                // Display error message if login fails
                 errorLabel.setText(response == null ? "No response from server." : response);
             }
         });
-
-            /*if (userId.isEmpty() || password.length == 0) {
-                errorLabel.setText("Please enter both User ID and Password!");
-                return;
-            }
-            
-            User user = users.get(userId);
-            if (user == null) {
-                errorLabel.setText("User ID not found!");
-                return;
-            }
-            
-            if (password.length < 8) {
-                errorLabel.setText("Invalid password!");
-                return;
-            }
-            
-            errorLabel.setText("");
-            // Clear sensitive data
-            Arrays.fill(password, '\0');
-            
-            // Clear login fields before opening new window
-            UserIDfield.setText("");
-            passwordField.setText("");
-            
-            // Open CO2 reading window
-            showCO2ReadingPage(frame, userId);
-        });*/
 
         // Open the Create Account window when the button is clicked
         createAccountButton.addActionListener(e ->
@@ -321,82 +301,26 @@ public class CO2 {
             String confirm = new String (confirmPasswordField.getPassword());
             
             if (name.isEmpty() || newUser.isEmpty() || pwd.isEmpty()) {
-                JOptionPane.showMessageDialog(createFrame, "All fields required");
+                errorLabel.setText("All fields are required.");
                 return;
             }
 
             if (!pwd.equals(confirm)) {
-                JOptionPane.showMessageDialog(createFrame, "Passwords do not match");
+                errorLabel.setText("Passwords do not match.");
                 return;
             }
 
+            // Send create user request to the server
             String message = "CREATE_USER," + newUser + "," + name + "," + pwd;
-
             String response = CO2ClientSocket.sendToServer(message);
-    
-            /*if (name.isEmpty()) {
-                JOptionPane.showMessageDialog(createFrame, "Please enter your name.", "Validation", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            
-            // Check if user ID exists and belongs to a different name
-            User existingUser = users.get(newUser);
-            if (existingUser != null && !existingUser.getName().equals(name)) {
-                JOptionPane.showMessageDialog(createFrame, 
-                    "This User ID is already registered to a different name.", 
-                    "Validation", 
-                    JOptionPane.WARNING_MESSAGE);
-                return;
-            }
 
-            // Rest of validation
-            if (newUser.isEmpty()) {
-                JOptionPane.showMessageDialog(createFrame, "Please enter a user id.", "Validation", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            if (!newUser.matches("\\d{7,9}")) {
-                JOptionPane.showMessageDialog(createFrame, "User ID must be 7 to 9 digits.", "Validation", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            // Add check for existing user ID
-            if (existingUserIds.contains(newUser)) {
-                JOptionPane.showMessageDialog(createFrame, "This User ID is already taken. Please choose another.", "Validation", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            if (pwd == null || pwd.length < 8) {
-                JOptionPane.showMessageDialog(createFrame, "Password must be at least 8 characters long.", "Validation", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            if (!Arrays.equals(pwd, confirm)) {
-                JOptionPane.showMessageDialog(createFrame, "Password and confirm password do not match.", "Validation", JOptionPane.WARNING_MESSAGE);
-                Arrays.fill(pwd, '\0');
-                Arrays.fill(confirm, '\0');
-                return;
-            }
-            // Add the user ID to the set of existing IDs
-            User newUserObj = new User(newUser, name, new String(pwd));
-            users.put(newUser, newUserObj);
-            existingUserIds.add(newUser);
-            //saveUsers(); // Save updated users list
-            String command = "CREATE_USER;" + newUser + ";" + name + ";" + new String(pwd);
-            String response = sendToServer(command);
-            
+            // Display server response in the error label
             if (response.startsWith("OK")) {
-                JOptionPane.showMessageDialog(createFrame, "Account created!");
-                createFrame.dispose();
+                errorLabel.setForeground(Color.GREEN);
+                errorLabel.setText("Account created successfully!");
             } else {
-                JOptionPane.showMessageDialog(createFrame, "Error: " + response);
-            }*/
-
-            // Success - placeholder action
-            if (response.startsWith("OK")) {
-                JOptionPane.showMessageDialog(createFrame, "Account created for: " + name, "Success", JOptionPane.INFORMATION_MESSAGE);
-            // clear password arrays for security
-            //Arrays.fill(pwd, '\0');
-            //Arrays.fill(confirm, '\0');
-                createFrame.dispose();
-            } else {
-                JOptionPane.showMessageDialog(createFrame, response, "Error", JOptionPane.ERROR_MESSAGE);
+                errorLabel.setForeground(Color.RED);
+                errorLabel.setText(response);
             }
         });
 
@@ -542,7 +466,7 @@ public class CO2 {
             try {
                 String postcode = postcodeField.getText().trim();
                 String co2Reading = co2Field.getText().trim();
-                
+
                 if (postcode.isEmpty() || co2Reading.isEmpty()) {
                     errorLabel.setText("Please fill in all fields.");
                     return;
@@ -555,46 +479,27 @@ public class CO2 {
                     return;
                 }
 
-                String message = "SEND_READING,"
-                    + userId + ","
-                    + userName + ","
-                    + postcode + ","
-                    + co2Value;
-        
+                // Send CO2 reading to the server
+                String message = "SEND_READING," + userId + "," + userName + "," + postcode + "," + co2Value;
                 String response = CO2ClientSocket.sendToServer(message);
 
-                JOptionPane.showMessageDialog(
-                    parentFrame,
-                    response,
-                    "Server Response",
-                    JOptionPane.INFORMATION_MESSAGE
-                );
+                // Display server response in the error label
+                if (response.startsWith("OK")) {
+                    errorLabel.setForeground(Color.GREEN);
+                    errorLabel.setText("Reading submitted successfully!");
+                } else {
+                    errorLabel.setForeground(Color.RED);
+                    errorLabel.setText(response);
+                }
 
+                // Clear input fields
                 postcodeField.setText("");
                 co2Field.setText("");
-                errorLabel.setText("");
-
-             } catch (NumberFormatException ex) {
+            } catch (NumberFormatException ex) {
                 errorLabel.setText("Invalid CO2 reading format!");
             }
-        
         });
-            // Send to server using socket client
-            /*boolean ok = CO2ClientSocket.sendReadingToServer(csvLine);
 
-            if (ok) {
-                JOptionPane.showMessageDialog(co2Frame,
-                        "Reading sent to server successfully!",
-                        "Success",
-                        JOptionPane.INFORMATION_MESSAGE);
-                postcodeField.setText("");
-                co2Field.setText("");
-                postcodeField.requestFocus();
-            } else {
-                errorLabel.setText("Could not connect to server!");
-            }*/
-
-        
         gbc.gridy = 6;
         gbc.gridx = 0;
         gbc.gridwidth = 2;
