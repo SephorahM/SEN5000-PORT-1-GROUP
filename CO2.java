@@ -193,7 +193,7 @@ public class CO2 {
     private static void showCreateAccountPage(JFrame parentFrame) {
         JFrame createFrame = new JFrame("Create Account");
         createFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        createFrame.setSize(420, 260);
+        createFrame.setSize(420, 300); // Adjusted size to fit the password strength bar
         createFrame.setLocationRelativeTo(parentFrame);
 
         JPanel panel = new JPanel(new GridBagLayout());
@@ -202,7 +202,7 @@ public class CO2 {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(5, 5, 5, 5);
 
-        JLabel title = new JLabel("lets create an account", JLabel.CENTER);
+        JLabel title = new JLabel("Let's create an account", JLabel.CENTER);
         title.setFont(new Font("Arial", Font.BOLD, 18));
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -237,7 +237,7 @@ public class CO2 {
         gbc.gridx = 1;
         panel.add(passwordField, gbc);
 
-        // Password strength label + bar (below password field)
+        // Password strength label + bar
         gbc.gridy = 4;
         gbc.gridx = 1;
         JLabel pwdStrengthLabel = new JLabel("");
@@ -249,9 +249,6 @@ public class CO2 {
         JPanel strengthPanel = new JPanel();
         strengthPanel.setLayout(new BorderLayout(0, 4));
         strengthPanel.setOpaque(false);
-        // hide the textual label — only show percentage on the bar
-        pwdStrengthLabel.setVisible(false);
-        // (label kept in layout but hidden to avoid layout shift)
         strengthPanel.add(pwdStrengthLabel, BorderLayout.NORTH);
         strengthPanel.add(pwdStrengthBar, BorderLayout.SOUTH);
         panel.add(strengthPanel, gbc);
@@ -287,19 +284,29 @@ public class CO2 {
         gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;
         panel.add(btnPanel, gbc);
-        
-        gbc.gridy = 7;
-        gbc.gridx = 0;
-        gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.CENTER;
-        panel.add(errorLabel, gbc);
 
+        // Add validation for User ID length
+        newUserField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void update(javax.swing.event.DocumentEvent e) {
+                SwingUtilities.invokeLater(() -> {
+                    String text = newUserField.getText();
+                    if (!text.matches("\\d*")) {
+                        newUserField.setText(text.replaceAll("[^\\d]", ""));
+                    }
+                    if (text.length() > 8) {
+                        newUserField.setText(text.substring(0, 8)); // Limit to 8 digits
+                    }
+                });
+            }
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { update(e); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { update(e); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { update(e); }
+        });
 
-        // Update password strength as user types — show percent on bar only
+        // Update password strength as user types
         passwordField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             private void update() {
                 String pwd = new String(passwordField.getPassword());
-                // compute score (same rules as before) and map to percent
                 int score = 0;
                 if (pwd.length() >= 8) score++;
                 if (pwd.matches(".*\\d.*")) score++;
@@ -314,33 +321,44 @@ public class CO2 {
                     pwdStrengthBar.setForeground(Color.RED);
                 } else if (score == 2) {
                     val = 66;
-                    pwdStrengthBar.setForeground(new Color(255, 140, 0)); // dark orange
+                    pwdStrengthBar.setForeground(new Color(255, 140, 0)); // Dark orange
                 } else {
                     val = 100;
-                    pwdStrengthBar.setForeground(new Color(0, 128, 0)); // green
+                    pwdStrengthBar.setForeground(new Color(0, 128, 0)); // Green
                 }
                 pwdStrengthBar.setValue(val);
                 pwdStrengthBar.setString(val + "%");
-             }
+            }
 
-             public void insertUpdate(javax.swing.event.DocumentEvent e) { update(); }
-             public void removeUpdate(javax.swing.event.DocumentEvent e) { update(); }
-             public void changedUpdate(javax.swing.event.DocumentEvent e) { update(); }
-         });
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { update(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { update(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { update(); }
+        });
 
         createBtn.addActionListener(e -> {
             String name = nameField.getText().trim();
             String newUser = newUserField.getText().trim();
             String pwd = new String(passwordField.getPassword());
-            String confirm = new String (confirmPasswordField.getPassword());
-            
+            String confirm = new String(confirmPasswordField.getPassword());
+
             if (name.isEmpty() || newUser.isEmpty() || pwd.isEmpty()) {
                 errorLabel.setText("All fields are required.");
                 return;
             }
 
+            if (newUser.length() < 6 || newUser.length() > 8) {
+                errorLabel.setText("User ID must be between 6 and 8 digits.");
+                return;
+            }
+
             if (!pwd.equals(confirm)) {
-                errorLabel.setText("Passwords do not match.");
+                // Show a popup message for mismatched passwords
+                JOptionPane.showMessageDialog(
+                    createFrame,
+                    "Passwords do not match. Please try again.",
+                    "Password Mismatch",
+                    JOptionPane.ERROR_MESSAGE
+                );
                 return;
             }
 
@@ -349,31 +367,16 @@ public class CO2 {
             String response = CO2ClientSocket.sendToServer(message);
 
             // Display server response in the error label
-            if (response.startsWith("OK")) {
+            if (response != null && response.startsWith("OK")) {
                 errorLabel.setForeground(Color.GREEN);
                 errorLabel.setText("Account created successfully!");
             } else {
                 errorLabel.setForeground(Color.RED);
-                errorLabel.setText(response);
+                errorLabel.setText(response != null ? response : "No response from server.");
             }
         });
 
         cancelBtn.addActionListener(e -> createFrame.dispose());
-
-        // Add document listener to newUserField to only accept numbers
-        newUserField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-            public void update(javax.swing.event.DocumentEvent e) {
-                SwingUtilities.invokeLater(() -> {
-                    String text = newUserField.getText();
-                    if (!text.matches("\\d*")) {
-                        newUserField.setText(text.replaceAll("[^\\d]", ""));
-                    }
-                });
-            }
-            public void insertUpdate(javax.swing.event.DocumentEvent e) { update(e); }
-            public void removeUpdate(javax.swing.event.DocumentEvent e) { update(e); }
-            public void changedUpdate(javax.swing.event.DocumentEvent e) { update(e); }
-        });
 
         createFrame.setContentPane(panel);
         createFrame.pack();

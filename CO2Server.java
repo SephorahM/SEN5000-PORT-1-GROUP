@@ -135,21 +135,19 @@ public class CO2Server {
         String name = p[2];
         String password = p[3];
 
+        // Validate User ID length
+        if (userId.length() < 6 || userId.length() > 8) {
+            System.out.println("Invalid User ID: " + userId); // Log the issue on the server
+            return "ERROR: User ID must be between 6 and 8 digits.";
+        }
+
         try {
             List<String> lines = readCSV(USERS_CSV);
-        
+
             for (String line : lines) {
                 String[] fields = line.split(",");
                 if (fields[0].equals(userId)) {
-                    // Notify server operator that the user ID already exists
-                    SwingUtilities.invokeLater(() -> {
-                        JOptionPane.showMessageDialog(
-                            null,
-                            "User ID " + userId + " already exists. Cannot create account.",
-                            "User ID Exists",
-                            JOptionPane.WARNING_MESSAGE
-                        );
-                    });
+                    System.out.println("User ID already exists: " + userId); // Log the issue on the server
                     return "ERROR: User ID already exists.";
                 }
             }
@@ -157,21 +155,10 @@ public class CO2Server {
             BufferedWriter writer = new BufferedWriter(new FileWriter(USERS_CSV, true));
             writer.write(userId + "," + name + "," + password + "\n");
             writer.close();
-            
-            System.out.println("User created: " + userId + " - " + name);  // Added logging
 
-            // Show popup message on the server side
-            SwingUtilities.invokeLater(() -> {
-                JOptionPane.showMessageDialog(
-                    null,
-                    "User ID " + userId + " has been saved successfully!",
-                    "User Saved",
-                    JOptionPane.INFORMATION_MESSAGE
-                );
-            });
-
+            System.out.println("User created: " + userId + " - " + name);
             return "OK,User created successfully";
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             return "ERROR: Server failed to create user";

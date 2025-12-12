@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.*;
+import javax.swing.*; // Import for JOptionPane
 
 //Connects to server on port 6060 and sends one CSV reading.
  
@@ -10,8 +11,13 @@ public class CO2ClientSocket extends Thread implements Runnable {
     private final int port;
 
     // Use port 6060 instead of 43 (43 is privileged and often blocked)
-    private static final String SERVER_HOST = "localhost";
-    private static final int SERVER_PORT = 6060;  // Changed from 5050 to 6060
+    private static String SERVER_HOST = "localhost";
+    private static int SERVER_PORT = 6060;
+
+    public static void setServerConfig(String host, int port) {
+        SERVER_HOST = host;
+        SERVER_PORT = port;
+    }
 
     private boolean sentSuccessfully = false;
 
@@ -41,6 +47,19 @@ public class CO2ClientSocket extends Thread implements Runnable {
 
             String response = in.readLine();
             System.out.println("Received response: " + response);  // Log the server's response
+
+            // Show a popup if the server sends an error response
+            if (response != null && response.startsWith("ERROR")) {
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(
+                        null,
+                        response,
+                        "Server Error",
+                        JOptionPane.ERROR_MESSAGE // Displays an error icon in the popup
+                    );
+                });
+            }
+
             return response;
 
         } catch (SocketTimeoutException e) {
