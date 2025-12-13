@@ -122,8 +122,9 @@ public class CO2Server {
 
             case "SEND_READING":
                 return saveReading(p);
-            
+
             default:
+                // Add a default case to handle unknown commands
                 return "ERROR: Unknown command";
         }
     }

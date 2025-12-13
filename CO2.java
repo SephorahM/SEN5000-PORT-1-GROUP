@@ -113,8 +113,8 @@ public class CO2 {
                 String[] parts = response.split(",", 2);
                 String userName = parts.length > 1 ? parts[1] : "User";
 
-                // Notify the server that the user has logged in
-                CO2ClientSocket.sendToServer("USER_LOGGED_IN," + userId);
+                // Removed unsupported command that caused "ERROR: Unknown command" popup:
+                // CO2ClientSocket.sendToServer("USER_LOGGED_IN," + userId);
 
                 // Open the CO2 reading input window
                 showCO2ReadingPage(frame, userId, userName);
