@@ -37,6 +37,7 @@ public class CO2Server {
             while (running) {
                 Socket clientSocket = serverSocket.accept();
 
+                // Limit the number of concurrent clients to MAX_CLIENTS (4)
                 if (!clientLimiter.tryAcquire()) {
                     System.out.println("Connection denied (server full)");
                     clientSocket.close();
@@ -44,6 +45,8 @@ public class CO2Server {
                 }
 
                 System.out.println("Client connected: " + clientSocket.getInetAddress());
+
+                // Start a new thread to handle the client
                 new Thread(() -> handleClient(clientSocket)).start();
             }
         } catch (IOException e) {
