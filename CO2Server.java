@@ -186,7 +186,17 @@ public class CO2Server {
                 }
             }
 
-            return "ERROR: User ID" + userId + " does not exist or invalid credentials.";
+            // Show a pop-up for invalid credentials
+            SwingUtilities.invokeLater(() -> {
+                JOptionPane.showMessageDialog(
+                    null,
+                    "Login failed: User ID " + userId + " does not exist or invalid credentials.",
+                    "Login Failed",
+                    JOptionPane.WARNING_MESSAGE
+                );
+            });
+
+            return "ERROR"; // Only return "ERROR" without additional details
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -117,14 +117,12 @@ public class CO2 {
                 String[] parts = response.split(",", 2);
                 String userName = parts.length > 1 ? parts[1] : "User";
 
-                // Removed unsupported command that caused "ERROR: Unknown command" popup:
-                // CO2ClientSocket.sendToServer("USER_LOGGED_IN," + userId);
-
                 // Open the CO2 reading input window
                 showCO2ReadingPage(frame, userId, userName);
             } else {
-                // Display error message if login fails
-                errorLabel.setText(response == null ? "No response from server." : response);
+                // Clear the text fields for User ID and Password
+                UserIDfield.setText("");
+                passwordField.setText("");
             }
         });
 
