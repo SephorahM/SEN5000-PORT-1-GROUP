@@ -9,15 +9,15 @@ public class CO2 {
 
     // Update main method
     public static void main(String[] args) {
-        String host = "localhost";
-        int port = 6060;
+        String host = "localhost"; // Default IP address
+        int port = 6060;           // Default port number
 
         if (args.length >= 2) {
-            host = args[0];
-            port = Integer.parseInt(args[1]);
+            host = args[0];        // Use provided IP address
+            port = Integer.parseInt(args[1]); // Use provided port number
         }
 
-        CO2ClientSocket.setServerConfig(host, port);
+        CO2ClientSocket.setServerConfig(host, port); // Connect to the server
         
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("CO2 reading tracker");
@@ -41,15 +41,16 @@ public class CO2 {
         welcomeLabel.setFont(new Font("Arial", Font.BOLD, 28));
         welcomeLabel.setForeground(new Color(0, 102, 204));
 
-            // Buttons
+        // Connection Status Label
+        JLabel connectionLabel = new JLabel("Connected to server at " + CO2ClientSocket.getHost() + ":" + CO2ClientSocket.getPort(), JLabel.CENTER);
+        connectionLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        connectionLabel.setForeground(new Color(0, 128, 0));
+
+        // Buttons
         JButton clientButton = new JButton("Go to Login");
-        
-        // Style buttons
         Dimension buttonSize = new Dimension(200, 40);
         clientButton.setPreferredSize(buttonSize);
         clientButton.setFont(new Font("Arial", Font.BOLD, 16));
-
-        // Keep client button action listener to show login page
         clientButton.addActionListener(e -> showLoginPage(frame));
 
         // Layout components
@@ -59,7 +60,10 @@ public class CO2 {
         panel.add(welcomeLabel, gbc);
 
         gbc.gridy = 1;
-        panel.add(clientButton,gbc);
+        panel.add(connectionLabel, gbc); // Add connection status label
+
+        gbc.gridy = 2;
+        panel.add(clientButton, gbc);
 
         frame.setContentPane(panel);
         frame.revalidate();
