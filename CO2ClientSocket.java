@@ -19,6 +19,15 @@ public class CO2ClientSocket extends Thread implements Runnable {
         SERVER_PORT = port;
     }
 
+    // Add these methods to retrieve the host and port
+    public static String getHost() {
+        return SERVER_HOST;
+    }
+
+    public static int getPort() {
+        return SERVER_PORT;
+    }
+
     private boolean sentSuccessfully = false;
 
     // Constructor (required – GUI will create an object with the CSV line)
