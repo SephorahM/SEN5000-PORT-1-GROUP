@@ -183,16 +183,21 @@ public class CO2Server {
                 if (fields[0].equals(userId) && fields[2].equals(password)) {
                     System.out.println("User logged in: " + userId);  // Log successful login
 
-                    // Show a pop-up on the server side for successful login
-                    SwingUtilities.invokeLater(() -> {
-                        JOptionPane.showMessageDialog(
-                            null,
-                            "User " + userId + " has logged in. Now let's record CO2 readings.",
-                            "Login Successful",
-                            JOptionPane.INFORMATION_MESSAGE
-                        );
-                    });
+                    // Show a pop-up on the server side synchronously so we wait for user to press OK
+                    try {
+                        SwingUtilities.invokeAndWait(() -> {
+                            JOptionPane.showMessageDialog(
+                                null,
+                                "User " + userId + " has logged in. Now let's record CO2 readings.",
+                                "Login Successful",
+                                JOptionPane.INFORMATION_MESSAGE
+                            );
+                        });
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
 
+                    // Send the response to the client only after the pop-up is dismissed
                     return "OK," + fields[1];  // Return name after OK
                 }
             }
