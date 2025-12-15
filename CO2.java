@@ -372,7 +372,7 @@ public class CO2 {
 
             // Handle server response
             if (response != null && response.startsWith("OK")) {
-                errorLabel.setForeground(Color.GREEN);
+                errorLabel.setForeground(new Color(128, 0, 128));
                 errorLabel.setText("Account created successfully!");
             } else {
                 errorLabel.setForeground(Color.RED);

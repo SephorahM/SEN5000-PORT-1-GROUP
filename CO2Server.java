@@ -139,14 +139,6 @@ public class CO2Server {
         String name = p[2];
         String password = p[3];
 
-        // Validate User ID length
-        if (userId.length() < 6 || userId.length() > 8) {
-            System.out.println("Invalid User ID: " + userId); // Log the issue on the server
-
-            // Send a specific response to the client for invalid User ID
-            return "POPUP,User ID must be between 6 and 8 digits. Provided: " + userId;
-        }
-
         try {
             List<String> lines = readCSV(USERS_CSV);
 
