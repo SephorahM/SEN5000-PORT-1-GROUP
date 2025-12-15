@@ -75,9 +75,11 @@ public class CO2ClientSocket extends Thread implements Runnable {
      
     @Override
     public void run() {
-        try (Socket socket = new Socket(host, port);
+        Socket socket = null;
+        try {
+            socket = new Socket(host, port);
              PrintWriter writer = new PrintWriter(
-                     new OutputStreamWriter(socket.getOutputStream()), true)) {
+                     new OutputStreamWriter(socket.getOutputStream()), true);
 
             writer.println(messageToSend);
             System.out.println("Client connected and holding connection...");
@@ -93,7 +95,7 @@ public class CO2ClientSocket extends Thread implements Runnable {
         sentSuccessfully = false;
     } finally {
         if (socket != null) {
-            try { socket.close(); } catch (IOException ignored) []
+            try { socket.close(); } catch (IOException ignored) {}
         }
     }
     }
