@@ -57,16 +57,9 @@ public class CO2ClientSocket extends Thread implements Runnable {
             String response = in.readLine();
             System.out.println("Received response: " + response);  // Log the server's response
 
-            // Show a popup if the server sends an error response
+            // Removed automatic popup for ERROR responses. Caller will handle showing errors in the UI.
             if (response != null && response.startsWith("ERROR")) {
-                SwingUtilities.invokeLater(() -> {
-                    JOptionPane.showMessageDialog(
-                        null,
-                        response,
-                        "Server Error",
-                        JOptionPane.ERROR_MESSAGE // Displays an error icon in the popup
-                    );
-                });
+                System.out.println("Server error response: " + response);
             }
 
             return response;
