@@ -9,6 +9,13 @@
             "name": "CO2",
             "request": "launch",
             "mainClass": "CO2",
+            "projectName": "SEN5000-PORT-1-GROUP_e7a9525"
+        },
+        {
+            "type": "java",
+            "name": "CO2",
+            "request": "launch",
+            "mainClass": "CO2",
             "projectName": "SEN5000-PORT-1-GROUP_508dde33"
         },
         {
