@@ -149,11 +149,15 @@ public class CO2Server {
                     return "ERROR: User ID already exists.";
                 }
             }
+private synchronized void writeReading(String line) throws IOException {
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(READINGS_CSV, true))) {
+        writer.write(line);
+    }
+}
+writeReading(timestamp + "," + userId + "," + name + "," + postcode + "," + ppm + "\n");
 
-            BufferedWriter writer = new BufferedWriter(new FileWriter(USERS_CSV, true));
-            writer.write(userId + "," + name + "," + password + "\n");
-            writer.close();
 
+           
             System.out.println("User created: " + userId + " - " + name);
             return "OK,User created successfully";
 
@@ -197,14 +201,7 @@ public class CO2Server {
             }
 
             // Show a pop-up on the server side for invalid credentials
-            SwingUtilities.invokeLater(() -> {
-                JOptionPane.showMessageDialog(
-                    null,
-                    "ERROR: User ID " + userId + " does not exist or invalid credentials entered.",
-                    "Server Response",
-                    JOptionPane.ERROR_MESSAGE
-                );
-            });
+            System.out.println("User " + userId + " logged in successfully.");
 
             return "ERROR: Invalid credentials.";
 
