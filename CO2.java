@@ -128,20 +128,11 @@ public class CO2 {
 
                 // Open the CO2 reading input window
                 showCO2ReadingPage(frame, userId, userName);
-            } else {
-                // Show the error message as a pop-up
-                JOptionPane.showMessageDialog(
-                    frame,
-                    response == null ? "No response from server." : response,
-                    "Login Failed",
-                    JOptionPane.ERROR_MESSAGE
-                );
-
-                // Clear the text fields for User ID and Password
+            }   // Clear the text fields for User ID and Password
                 UserIDfield.setText("");
                 passwordField.setText("");
-            }
-        });
+            });
+    
 
         // Open the Create Account window when the button is clicked
         createAccountButton.addActionListener(e ->
