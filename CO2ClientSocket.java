@@ -80,7 +80,8 @@ public class CO2ClientSocket extends Thread implements Runnable {
                      new OutputStreamWriter(socket.getOutputStream()), true)) {
 
             writer.println(messageToSend);
-            Thread.sleep(1000);
+            System.out.println("Client connected and holding connection...");
+            Thread.sleep(10000);
             sentSuccessfully = true;
 
         } catch (IOException e) {
@@ -90,6 +91,10 @@ public class CO2ClientSocket extends Thread implements Runnable {
         System.out.println("Client interrupted: " + e.getMessage());
         Thread.currentThread().interrupt(); // restore interrupt status
         sentSuccessfully = false;
+    } finally {
+        if (socket != null) {
+            try { socket.close(); } catch (IOException ignored) []
+        }
     }
     }
 
