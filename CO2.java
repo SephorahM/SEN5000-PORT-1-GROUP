@@ -116,18 +116,12 @@ public class CO2 {
                 // Extract user name from the server response
                 String[] parts = response.split(",", 2);
                 String userName = parts.length > 1 ? parts[1] : "User";
-                String serverMessage = parts.length > 2 ? parts[2] : "Login successful.";
+               
 
                 // Open the CO2 reading input window
                 showCO2ReadingPage(frame, userId, userName);
             } else {
-                // Show the error message as a pop-up and clear fields
-                JOptionPane.showMessageDialog(
-                    frame,
-                    response == null ? "No response from server." : response,
-                    "Login Failed",
-                    JOptionPane.ERROR_MESSAGE
-                );
+                // Clear the text fields for User ID and Password
                 UserIDfield.setText("");
                 passwordField.setText("");
             }
