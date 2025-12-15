@@ -80,12 +80,17 @@ public class CO2ClientSocket extends Thread implements Runnable {
                      new OutputStreamWriter(socket.getOutputStream()), true)) {
 
             writer.println(messageToSend);
+            Thread.sleep(1000);
             sentSuccessfully = true;
 
         } catch (IOException e) {
             System.out.println("Client error: " + e.getMessage());
             sentSuccessfully = false;
-        }
+        } catch (InterruptedException e) {
+        System.out.println("Client interrupted: " + e.getMessage());
+        Thread.currentThread().interrupt(); // restore interrupt status
+        sentSuccessfully = false;
+    }
     }
 
     public boolean wasSentSuccessfully() {
