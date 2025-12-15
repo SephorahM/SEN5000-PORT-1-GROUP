@@ -182,11 +182,19 @@ public class CO2Server {
                 String[] fields = line.split(",");
                 if (fields[0].equals(userId) && fields[2].equals(password)) {
                     System.out.println("User logged in: " + userId);  // Log successful login
-
-                    // Return a success message with the user name and instructions
-                    return "OK," + fields[1] + ",User has logged in. Now let's record CO2 readings.";
+                    return "OK," + fields[1];  // Return name after OK
                 }
             }
+
+            // Show a pop-up on the server side for invalid credentials
+            SwingUtilities.invokeLater(() -> {
+                JOptionPane.showMessageDialog(
+                    null,
+                    "Login failed: Invalid credentials for User ID " + userId + ".",
+                    "Server Response",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            });
 
             return "ERROR: Invalid credentials.";
 

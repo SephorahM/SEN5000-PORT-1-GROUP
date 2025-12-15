@@ -1,6 +1,5 @@
 import java.io.*;
 import java.net.*;
-import javax.swing.*; // Import for JOptionPane
 
 //Connects to server on port 6060 and sends one CSV reading.
  
@@ -57,11 +56,7 @@ public class CO2ClientSocket extends Thread implements Runnable {
             String response = in.readLine();
             System.out.println("Received response: " + response);  // Log the server's response
 
-            // Removed automatic popup for ERROR responses. Caller will handle showing errors in the UI.
-            if (response != null && response.startsWith("ERROR")) {
-                System.out.println("Server error response: " + response);
-            }
-
+            // Removed automatic popup for ERROR responses. The server will handle pop-ups.
             return response;
 
         } catch (SocketTimeoutException e) {
