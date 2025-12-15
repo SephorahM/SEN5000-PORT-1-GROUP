@@ -113,13 +113,30 @@ public class CO2 {
             String response = CO2ClientSocket.sendToServer("LOGIN," + userId + "," + password);
 
             if (response != null && response.startsWith("OK")) {
-                // Extract user name from the server response
-                String[] parts = response.split(",", 2);
+                // Extract user name and server message from the response
+                String[] parts = response.split(",", 3);
                 String userName = parts.length > 1 ? parts[1] : "User";
+                String serverMessage = parts.length > 2 ? parts[2] : "Login successful.";
+
+                // Show the server's message as a pop-up
+                JOptionPane.showMessageDialog(
+                    frame,
+                    serverMessage,
+                    "Login Successful",
+                    JOptionPane.INFORMATION_MESSAGE
+                );
 
                 // Open the CO2 reading input window
                 showCO2ReadingPage(frame, userId, userName);
             } else {
+                // Show the error message as a pop-up
+                JOptionPane.showMessageDialog(
+                    frame,
+                    response == null ? "No response from server." : response,
+                    "Login Failed",
+                    JOptionPane.ERROR_MESSAGE
+                );
+
                 // Clear the text fields for User ID and Password
                 UserIDfield.setText("");
                 passwordField.setText("");
