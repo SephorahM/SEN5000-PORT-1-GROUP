@@ -370,7 +370,7 @@ public class CO2 {
             String message = "CREATE_USER," + newUser + "," + name + "," + pwd;
             String response = CO2ClientSocket.sendToServer(message);
 
-            // Display server response in the error label
+            // Handle server response
             if (response != null && response.startsWith("OK")) {
                 errorLabel.setForeground(Color.GREEN);
                 errorLabel.setText("Account created successfully!");

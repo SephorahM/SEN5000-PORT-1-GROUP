@@ -142,7 +142,9 @@ public class CO2Server {
         // Validate User ID length
         if (userId.length() < 6 || userId.length() > 8) {
             System.out.println("Invalid User ID: " + userId); // Log the issue on the server
-            return "ERROR: User ID must be between 6 and 8 digits.";
+
+            // Send a specific response to the client for invalid User ID
+            return "POPUP,User ID must be between 6 and 8 digits. Provided: " + userId;
         }
 
         try {
