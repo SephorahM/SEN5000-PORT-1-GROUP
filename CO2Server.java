@@ -5,11 +5,14 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.ExecutorService; 
+import java.util.concurrent.Executors;
 
 public class CO2Server {
 
     private static final int PORT = 6060;  // Changed from 5050 to 6060
     private static final int MAX_CLIENTS = 4;
+    private static final ExecutorService ThreadPool = Executors.newFixedThreadPool(MAX_CLIENTS);
 
     private static final String USERS_CSV = "users.csv";
     private static final String READINGS_CSV = "co2_readings.csv";
