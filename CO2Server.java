@@ -1,3 +1,4 @@
+
 import java.awt.*;
 import java.io.*;
 import java.net.*;
@@ -7,6 +8,7 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import javax.swing.*; // Import for JOptionPane
 
+
 public class CO2Server {
 
     private static final int PORT = 6060;  // Changed from 5050 to 6060
@@ -15,9 +17,6 @@ public class CO2Server {
     private static final String USERS_CSV = "users.csv";
     private static final String READINGS_CSV = "co2_readings.csv";
 
-    private ServerSocket serverSocket;
-    private Thread serverThread;
-    private boolean running = false;
 
     private final Semaphore clientLimiter = new Semaphore(MAX_CLIENTS);
 
@@ -27,19 +26,18 @@ public class CO2Server {
     
     public void start() {
         initialiseCSV();
-        running = true;
+        
 
-        try {
-            ServerSocket server = new ServerSocket(PORT);
-            this.serverSocket = server;
+         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             System.out.println("CO2 Server running on port " + PORT);
 
-            while (running) {
+            while (true) {
                 Socket clientSocket = serverSocket.accept();
 
                 // Limit the number of concurrent clients to MAX_CLIENTS (4)
                 if (!clientLimiter.tryAcquire()) {
-                    System.out.println("Connection denied (server full)");
+                   PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                    out.println("ERROR: Server busy. Try again later.");
                     clientSocket.close();
                     continue;
                 }
@@ -91,16 +89,14 @@ public class CO2Server {
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)
         ) {
-            System.out.println("Client connected: " + clientSocket.getInetAddress());  // Log client connection
-
+            
             String message = in.readLine();
             if (message != null) {
                 System.out.println("Received message: " + message);  // Log the received message
                 String response = processMessage(message);
                 System.out.println("Sending response: " + response);  // Log the response being sent
                 out.println(response);
-            } else {
-                System.out.println("No message received from client.");  // Log if no message is received
+            } 
             }
 
         } catch (IOException e) {
@@ -140,30 +136,26 @@ public class CO2Server {
         String password = p[3];
 
         try {
-            List<String> lines = readCSV(USERS_CSV);
+            List<String> users = readCSV(USERS_CSV);
 
-            for (String line : lines) {
-                String[] fields = line.split(",");
-                if (fields[0].equals(userId)) {
-                    System.out.println("User ID already exists: " + userId); // Log the issue on the server
-                    return "ERROR: User ID already exists.";
+            for (String line : uers) {
+                
+                for (String line : users) {
+                if (line.split(",")[0].equals(userId)) {
+                    return "ERROR: User ID already exists";
                 }
             }
-private synchronized void writeReading(String line) throws IOException {
-    try (BufferedWriter writer = new BufferedWriter(new FileWriter(READINGS_CSV, true))) {
-        writer.write(line);
-    }
-}
-writeReading(timestamp + "," + userId + "," + name + "," + postcode + "," + ppm + "\n");
+ synchronized (this) {
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(USERS_CSV, true))) {
+                    writer.write(userId + "," + name + "," + password + "\n");
+                }
+            }
 
-
-           
-            System.out.println("User created: " + userId + " - " + name);
             return "OK,User created successfully";
 
         } catch (Exception e) {
             e.printStackTrace();
-            return "ERROR: Server failed to create user";
+            return "ERROR: Failed to create user";
         }
     }
 
@@ -174,43 +166,44 @@ writeReading(timestamp + "," + userId + "," + name + "," + postcode + "," + ppm 
         String password = p[2];
 
         try {
-            List<String> lines = readCSV(USERS_CSV);
+            List<String> users = readCSV(USERS_CSV);
+        
 
-            for (String line : lines) {
-                String[] fields = line.split(",");
-                if (fields[0].equals(userId) && fields[2].equals(password)) {
+            for (String line : users) {
+                String[] f = line.split(",");
+                if (f[0].equals(userId) && f[2].equals(password)) {
                     System.out.println("User logged in: " + userId);  // Log successful login
 
                     // Show a pop-up on the server side synchronously so we wait for user to press OK
-                    try {
-                        SwingUtilities.invokeAndWait(() -> {
+                   
+                        SwingUtilities.invokeAndWait(() -> 
+                    
                             JOptionPane.showMessageDialog(
                                 null,
                                 "User " + userId + " has logged in. Now let's record CO2 readings.",
                                 "Login Successful",
                                 JOptionPane.INFORMATION_MESSAGE
                             );
-                        });
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
+                        );
+                     return "OK," + f[1]; // return user name
+                
                     }
+                }
 
                     // Send the response to the client only after the pop-up is dismissed
-                    return "OK," + fields[1];  // Return name after OK
+                    return "OK," + f[1];  // Return name after OK
                 }
             }
 
-            // Show a pop-up on the server side for invalid credentials
-            System.out.println("User " + userId + " logged in successfully.");
-
+            
             return "ERROR: Invalid credentials.";
 
         } catch (Exception e) {
             e.printStackTrace();
             return "ERROR: Server failed to process login";
         }
-    }
-
+    
+//CO2 Readings
     private String saveReading(String[] p) {
         if (p.length < 5) return "ERROR: Invalid reading format";
 
@@ -222,17 +215,17 @@ writeReading(timestamp + "," + userId + "," + name + "," + postcode + "," + ppm 
         try {
             String timestamp = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(new Date());
 
-            BufferedWriter writer = new BufferedWriter(new FileWriter(READINGS_CSV, true));
-            writer.write(timestamp + "," + userId + "," + name + "," + postcode + "," + ppm + "\n");
-            writer.close();
-
-            System.out.println("Reading saved: " + userId + " - " + postcode + " - " + ppm + " ppm");  // Added logging
+            synchronized (this) {
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(READINGS_CSV, true))) {
+                    writer.write(timestamp + "," + userId + "," + name + "," + postcode + "," + ppm + "\n");
+                }
+            }
 
             // Show popup message on the server side
             SwingUtilities.invokeLater(() -> {
                 JOptionPane.showMessageDialog(
                     null,
-                    "Reading for User ID " + userId + " has been saved successfully!",
+                    "CO2 reading saved for user " + userId,
                     "Reading Saved",
                     JOptionPane.INFORMATION_MESSAGE
                 );
@@ -248,8 +241,8 @@ writeReading(timestamp + "," + userId + "," + name + "," + postcode + "," + ppm 
 
     private void initialiseCSV() {
         try {
-            File users = new File(USERS_CSV);
-            if (!users.exists()) {
+            
+           if (!new File(USERS_CSV).exists()) {
                 System.out.println("Creating users.csv...");
                 BufferedWriter writer = new BufferedWriter(new FileWriter(users));
                 writer.write("UserID,Name,Password\n");
@@ -258,13 +251,17 @@ writeReading(timestamp + "," + userId + "," + name + "," + postcode + "," + ppm 
 
             File readings = new File(READINGS_CSV);
             if (!readings.exists()) {
-                System.out.println("Creating co2_readings.csv...");
-                BufferedWriter writer = new BufferedWriter(new FileWriter(readings));
-                writer.write("Timestamp,UserID,Name,Postcode,PPM\n");
-                writer.close();
+                try (BufferedWriter w = new BufferedWriter(new FileWriter(USERS_CSV))) {
+                    w.write("UserID,Name,Password\n");
+                }
+            }
+
+            if (!new File(READINGS_CSV).exists()) {
+                try (BufferedWriter w = new BufferedWriter(new FileWriter(READINGS_CSV))) {
+                    w.write("Timestamp,UserID,Name,Postcode,PPM\n");
+                }
             }
         } catch (IOException e) {
-            System.out.println("Error initializing CSV files.");
             e.printStackTrace();  // Log the exception for debugging
         }
     }
@@ -275,10 +272,10 @@ writeReading(timestamp + "," + userId + "," + name + "," + postcode + "," + ppm 
         String line;
         r.readLine();
         while ((line = r.readLine()) != null) list.add(line);
-        r.close();
+    
         return list;
-    }
 }
+
     /*private void loadCSVData() {
         tableModel.setRowCount(0);
         try (BufferedReader reader = new BufferedReader(new FileReader(SERVER_CSV))) {
