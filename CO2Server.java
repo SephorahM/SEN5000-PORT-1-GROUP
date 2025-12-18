@@ -4,6 +4,8 @@ import java.net.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Semaphore;
+import javax.swing.*;
+
 
 public class CO2Server {
 
@@ -29,7 +31,6 @@ public class CO2Server {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
 
-                // Limit the number of concurrent clients to MAX_CLIENTS (4)
                 if (!clientLimiter.tryAcquire()) {
                     PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
                     out.println("ERROR: Server busy (maximum 4 clients allowed)");
@@ -40,7 +41,6 @@ public class CO2Server {
 
                 System.out.println("Client accepted: " + clientSocket.getInetAddress());
 
-                // Start a new thread to handle the client
                 new Thread(new ClientHandler(clientSocket)).start();
             }
         } catch (IOException e) {
@@ -140,7 +140,7 @@ public class CO2Server {
                     return "ERROR: User ID already exists";
                 }
             }
- synchronized (this) {
+            synchronized (this) {
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(USERS_CSV, true))) {
                     writer.write(userId + "," + name + "," + password + "\n");
                 }
@@ -368,8 +368,9 @@ public class CO2Server {
                 w.write(userId + "," + name + "," + password + "\n");
                 w.close();
             }
-            return "OK,User created";
+            return "OK,User created successfully";
         } catch (Exception e) {
+            e.printStackTrace();
             return "ERROR: Server error creating user";
         }
     }
@@ -388,11 +389,12 @@ public class CO2Server {
             for (String u : users) {
                 String[] f = u.split(",");
                 if (f[0].equals(userId) && f[2].equals(password)) {
-                    return "OK," + f[1];
+                    System.out.println("OK, user logged in:" + f[1]);
                 }
             }
             return "ERROR: Invalid credentials";
         } catch (Exception e) {
+            System.out.println("ERROR: Login failed");
             return "ERROR: Login failed";
         }
     }
@@ -416,8 +418,19 @@ public class CO2Server {
                 w.write(timestamp + "," + userId + "," + name + "," + postcode + "," + ppm + "\n");
                 w.close();
             }
+            
+            SwingUtilities.invokeLater(() -> {
+                JOptionPane.showMessageDialog(
+                    null,
+                    "CO2 reading saved for user " + userId,
+                    "Reading Saved",
+                    JOptionPane.INFORMATION_MESSAGE
+                );
+            });
+            
             return "OK: Reading saved at " + timestamp;
         } catch (Exception e) {
+            e.printStackTrace();
             return "ERROR: Failed to save reading";
         }
     }
@@ -426,11 +439,13 @@ public class CO2Server {
     private static void initialiseCSV() {
         try {
             if (!new File(USERS_CSV).exists()) {
+                System.out.println("Creating users.csv...");
                 BufferedWriter w = new BufferedWriter(new FileWriter(USERS_CSV));
                 w.write("UserID,Name,Password\n");
                 w.close();
             }
             if (!new File(READINGS_CSV).exists()) {
+                System.out.println("Creating co2_readings.csv...");
                 BufferedWriter w = new BufferedWriter(new FileWriter(READINGS_CSV));
                 w.write("Timestamp,UserID,Name,Postcode,PPM\n");
                 w.close();
