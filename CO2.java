@@ -130,9 +130,6 @@ public class CO2 {
 
         // Open the Create Account window when the button is clicked
         createAccountButton.addActionListener(e ->
-           // UserIDfield.setText("");  // Clear user ID field
-           // passwordField.setText(""); // Clear password field
-           // errorLabel.setText("");    // Clear any error messages
             showCreateAccountPage(frame));
         
 
