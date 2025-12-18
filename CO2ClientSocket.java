@@ -1,4 +1,4 @@
-import java.io.*;
+/*import java.io.*;
 import java.net.*;
 
 //Connects to server on port 6060 and sends one CSV reading.
@@ -102,5 +102,50 @@ public class CO2ClientSocket extends Thread implements Runnable {
 
     public boolean wasSentSuccessfully() {
         return sentSuccessfully;
+    }
+}*/
+
+import java.io.*;
+import java.net.*;
+
+/**
+ * Handles all client-server communication.
+ */
+public class CO2ClientSocket {
+
+    private static String SERVER_HOST = "localhost";
+    private static int SERVER_PORT = 6060;
+
+    public static void setServerConfig(String host, int port) {
+        SERVER_HOST = host;
+        SERVER_PORT = port;
+    }
+
+    public static String getHost() {
+        return SERVER_HOST;
+    }
+
+    public static int getPort() {
+        return SERVER_PORT;
+    }
+
+    // Generic send-to-server function for ALL messages
+    public static String sendToServer(String message) {
+        try (Socket socket = new Socket(SERVER_HOST, SERVER_PORT); BufferedReader in = new BufferedReader(
+                new InputStreamReader(socket.getInputStream())); PrintWriter out = new PrintWriter(
+                socket.getOutputStream(), true)) {
+
+            socket.setSoTimeout(10000);
+
+            out.println(message);
+            return in.readLine();
+
+        } catch (SocketTimeoutException e) {
+            return "ERROR: Server took too long to respond";
+        } catch (ConnectException e) {
+            return "ERROR: Could not connect to server";
+        } catch (IOException e) {
+            return "ERROR: " + e.getMessage();
+        }
     }
 }
