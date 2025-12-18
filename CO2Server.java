@@ -140,8 +140,7 @@ public class CO2Server {
             for (String u : users) {
                 String[] f = u.split(",");
                 if (f[0].equals(userId) && f[2].equals(password)) {
-                    System.out.println("OK, user logged in:" + f[1]);
-                }
+                return "OK," + f[1];                }
             }
             return "ERROR: Invalid credentials";
         } catch (Exception e) {
