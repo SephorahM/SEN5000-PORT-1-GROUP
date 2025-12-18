@@ -7,7 +7,6 @@ import javax.swing.*;
 
 public class CO2 {
 
-    // Update main method
     public static void main(String[] args) {
         String host = "localhost"; // Default IP address
         int port = 6060;           // Default port number
@@ -117,11 +116,9 @@ public class CO2 {
                 String[] parts = response.split(",", 2);
                 String userName = parts.length > 1 ? parts[1] : "User";
                
-
-                // Open the CO2 reading input window
                 showCO2ReadingPage(frame, userId, userName);
             } else {
-                // Clear the text fields for User ID and Password
+
                 UserIDfield.setText("");
                 passwordField.setText("");
             }
@@ -152,7 +149,6 @@ public class CO2 {
         gbc.gridx = 1;
         panel.add(passwordField, gbc);
 
-        // Place buttons stacked vertically and centered
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.gridwidth = 2; // span both columns so component is centered
@@ -353,7 +349,6 @@ public class CO2 {
             }
 
             if (!pwd.equals(confirm)) {
-                // Show a popup message for mismatched passwords
                 JOptionPane.showMessageDialog(
                     createFrame,
                     "Passwords do not match. Please try again.",
@@ -385,9 +380,6 @@ public class CO2 {
     }
 
     private static void showCO2ReadingPage(JFrame parentFrame, String userId, String userName) {
-        //User user = users.get(userId);
-        /*sendToServer("LOGIN:" + userId + ";" + password);
-        String userName = user != null ? user.getName() : userId;*/
 
         JFrame co2Frame = new JFrame("CO2 Reading Input");
         co2Frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -426,7 +418,6 @@ public class CO2 {
         userIdField.setPreferredSize(fieldSize);
         panel.add(userIdField, gbc);
 
-        // Postcode (now at position 1 instead of 2)
         gbc.gridy = 2;
         gbc.gridx = 0;
         JLabel postcodeLabel = new JLabel("Postcode:");
@@ -438,7 +429,6 @@ public class CO2 {
         postcodeField.setPreferredSize(fieldSize);
         panel.add(postcodeField, gbc);
 
-        // CO2 Reading (now at position 2 instead of 3)
         gbc.gridy = 3;
         gbc.gridx = 0;
         JLabel co2Label = new JLabel("CO2 (ppm):");
@@ -469,7 +459,6 @@ public class CO2 {
         errorLabel.setFont(new Font("Arial", Font.PLAIN, 14));
         panel.add(errorLabel, gbc);
 
-        // Add document listener to CO2 field to only accept numbers and decimal point
         co2Field.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             public void update(javax.swing.event.DocumentEvent e) {
                 SwingUtilities.invokeLater(() -> {

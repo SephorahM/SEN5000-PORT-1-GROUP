@@ -2,14 +2,12 @@
 import java.io.*;
 import java.net.*;
 
-//Connects to server on port 6060 and sends one CSV reading.
 public class CO2ClientSocket extends Thread implements Runnable {
 
     private final String messageToSend;
     private final String host;
     private final int port;
 
-    // Use port 6060 instead of 43 (43 is privileged and often blocked)
     private static String SERVER_HOST = "localhost";
     private static int SERVER_PORT = 6060;
 
@@ -29,7 +27,6 @@ public class CO2ClientSocket extends Thread implements Runnable {
 
     private boolean sentSuccessfully = false;
 
-    // Constructor (required – GUI will create an object with the CSV line)
     public CO2ClientSocket(String messageToSend) {
         this(messageToSend, SERVER_HOST, SERVER_PORT);
     }
@@ -54,7 +51,6 @@ public class CO2ClientSocket extends Thread implements Runnable {
             String response = in.readLine();
             System.out.println("Received response: " + response);  // Log the server's response
 
-            // Removed automatic popup for ERROR responses. The server will handle pop-ups.
             return response;
 
         } catch (SocketTimeoutException e) {
@@ -69,7 +65,6 @@ public class CO2ClientSocket extends Thread implements Runnable {
         }
     }
 
-    // the client connects to server.
     @Override
     public void run() {
         Socket socket = null;

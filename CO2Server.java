@@ -8,7 +8,7 @@ import javax.swing.*;
 
 public class CO2Server {
 
-    private static final int PORT = 6060;  // Changed from 5050 to 6060
+    private static final int PORT = 6060;  
     private static final int MAX_CLIENTS = 4;
     private static final String USERS_CSV = "users.csv";
     private static final String READINGS_CSV = "co2_readings.csv";
@@ -79,7 +79,6 @@ public class CO2Server {
         }
     }
 
-    // ================= MESSAGE ROUTER =================
     private static String processMessage(String message) {
         String[] p = message.split(",");
 
@@ -95,7 +94,6 @@ public class CO2Server {
         }
     }
 
-    // ================= USER CREATION =================
     private static String createUser(String[] p) {
         if (p.length < 4) {
             return "ERROR: Invalid CREATE_USER format";
@@ -124,7 +122,6 @@ public class CO2Server {
         }
     }
 
-    // ================= LOGIN =================
     private static String loginUser(String[] p) {
         if (p.length < 3) {
             return "ERROR: Invalid LOGIN format";
@@ -147,7 +144,6 @@ public class CO2Server {
         }
     }
 
-    // ================= SAVE READING =================
     private static String saveReading(String[] p) {
         if (p.length < 5) {
             return "ERROR: Invalid SEND_READING format";
@@ -182,7 +178,6 @@ public class CO2Server {
         }
     }
 
-    // ================= CSV INIT =================
     private static void initialiseCSV() {
         try {
             if (!new File(USERS_CSV).exists()) {
